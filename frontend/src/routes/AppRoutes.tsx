@@ -28,6 +28,21 @@ const PaginaPortalPostulante = lazy(() =>
 const PaginaMiErgonomia = lazy(() =>
   import('../features/ergonomia/PaginaMiErgonomia').then((m) => ({ default: m.PaginaMiErgonomia }))
 );
+const PanelGestionCuestionarios = lazy(() =>
+  import('../features/supervision/components/PanelGestionCuestionarios').then((m) => ({ default: m.PanelGestionCuestionarios }))
+);
+const ConsolaTeletrabajo = lazy(() =>
+  import('../features/supervision/components/ConsolaTeletrabajo').then((m) => ({ default: m.ConsolaTeletrabajo }))
+);
+const PaginaConsolaSupervision = lazy(() =>
+  import('../pages/supervisor/PaginaConsolaSupervision').then((m) => ({ default: m.PaginaConsolaSupervision }))
+);
+const PaginaReportes = lazy(() =>
+  import('../pages/reportes/PaginaReportes').then((m) => ({ default: m.PaginaReportes }))
+);
+const PaginaBitacoraAuditoria = lazy(() =>
+  import('../pages/bitacora/PaginaBitacoraAuditoria').then((m) => ({ default: m.PaginaBitacoraAuditoria }))
+);
 
 const RedireccionRaiz: React.FC = () => {
   const { usuario } = useAuth();
@@ -66,18 +81,23 @@ export const AppRoutes: React.FC = () => {
           {/* Portal Empleado */}
           <Route element={<RutaProtegidaPorRol rolesPermitidos={rolesEmpleado} />}>
             <Route path="/mi-ergonomia" element={<PaginaMiErgonomia />} />
+            <Route path="/teletrabajo" element={<ConsolaTeletrabajo />} />
           </Route>
 
-          {/* Panel Supervisión SST y Dashboard */}
+          {/* Panel Supervisión SST, Dashboard, Cuestionarios y Mosaico */}
           <Route element={<RutaProtegidaPorRol rolesPermitidos={rolesSst} />}>
             <Route path="/dashboard" element={<PaginaDashboard />} />
+            <Route path="/cuestionarios" element={<PanelGestionCuestionarios />} />
+            <Route path="/consola-supervision" element={<PaginaConsolaSupervision />} />
+            <Route path="/reportes" element={<PaginaReportes />} />
           </Route>
 
-          {/* Módulos Administrativos de Tenant */}
+          {/* Módulos Administrativos y Bitácora WORM */}
           <Route element={<RutaProtegidaPorRol rolesPermitidos={rolesAdmin} />}>
             <Route path="/organizaciones" element={<PaginaOrganizaciones />} />
             <Route path="/usuarios" element={<PaginaUsuarios />} />
             <Route path="/suscripciones" element={<PaginaSuscripciones />} />
+            <Route path="/bitacora" element={<PaginaBitacoraAuditoria />} />
           </Route>
         </Route>
 

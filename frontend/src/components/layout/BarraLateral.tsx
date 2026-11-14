@@ -10,6 +10,11 @@ import {
   X,
   Video,
   Activity,
+  FileQuestion,
+  Laptop,
+  Monitor,
+  FileText,
+  Lock,
 } from 'lucide-react';
 import { useAuth } from '../../context/ContextoAutenticacion';
 import { LogoErgoCheck } from '../ui/LogoErgoCheck';
@@ -36,6 +41,30 @@ export const BarraLateral: React.FC<Props> = ({ abiertoEnMovil, alCerrarMovil })
       label: esSuperAdmin ? 'Simulador de Evaluación' : 'Sala de Evaluación',
       icono: Video,
       roles: ['POSTULANTE', 'SUPER_ADMINISTRADOR'],
+    },
+    {
+      to: '/cuestionarios',
+      label: 'Exámenes y Cuestionarios',
+      icono: FileQuestion,
+      roles: ['SUPERVISOR', 'ADMIN_ORGANIZACION', 'SUPER_ADMINISTRADOR'],
+    },
+    {
+      to: '/consola-supervision',
+      label: 'Consola Tiempo Real',
+      icono: Monitor,
+      roles: ['SUPERVISOR', 'ADMIN_ORGANIZACION', 'SUPER_ADMINISTRADOR'],
+    },
+    {
+      to: '/reportes',
+      label: 'Centro de Reportes',
+      icono: FileText,
+      roles: ['SUPERVISOR', 'ADMIN_ORGANIZACION', 'SUPER_ADMINISTRADOR'],
+    },
+    {
+      to: '/teletrabajo',
+      label: 'Modo Teletrabajo',
+      icono: Laptop,
+      roles: ['EMPLEADO', 'SUPERVISOR', 'ADMIN_ORGANIZACION', 'SUPER_ADMINISTRADOR'],
     },
     {
       to: '/mi-ergonomia',
@@ -69,6 +98,12 @@ export const BarraLateral: React.FC<Props> = ({ abiertoEnMovil, alCerrarMovil })
       to: '/suscripciones',
       label: esSuperAdmin ? 'Ingresos y Planes SaaS' : 'Mi Plan y Facturación',
       icono: CreditCard,
+      roles: ['ADMIN_ORGANIZACION', 'SUPER_ADMINISTRADOR'],
+    },
+    {
+      to: '/bitacora',
+      label: 'Bitácora WORM',
+      icono: Lock,
       roles: ['ADMIN_ORGANIZACION', 'SUPER_ADMINISTRADOR'],
     },
   ];
