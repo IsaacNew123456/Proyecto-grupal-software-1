@@ -4,9 +4,6 @@ import { PlantillaPrivada } from '../components/layout/PlantillaPrivada';
 import { RutaProtegidaPorRol, obtenerRutaPorDefecto } from '../auth/components/RutaProtegidaPorRol';
 import { useAuth } from '../context/ContextoAutenticacion';
 
-const PaginaLanding = lazy(() =>
-  import('../pages/landing/LandingPage').then((m) => ({ default: m.LandingPage }))
-);
 const PaginaInicioSesion = lazy(() =>
   import('../pages/auth/PaginaInicioSesion').then((m) => ({ default: m.PaginaInicioSesion }))
 );
@@ -70,13 +67,11 @@ export const AppRoutes: React.FC = () => {
   return (
     <Suspense fallback={<CargadorRuta />}>
       <Routes>
-        {/* Ruta principal pública: Landing Page */}
-        <Route path="/" element={<PaginaLanding />} />
         <Route path="/login" element={<PaginaInicioSesion />} />
         <Route path="/registro" element={<PaginaRegistro />} />
 
         <Route element={<PlantillaPrivada />}>
-          <Route path="/app" element={<RedireccionRaiz />} />
+          <Route path="/" element={<RedireccionRaiz />} />
 
           {/* Portal Postulante */}
           <Route element={<RutaProtegidaPorRol rolesPermitidos={rolesPostulante} />}>
