@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 
-export function useMedidorDedicacion(activo: boolean) {
+export function useMedidorDedicacion(activo: boolean, enDescanso: boolean = false) {
   const [tiempoActivoSeg, setTiempoActivoSeg] = useState(0);
   const [tiempoOciosoSeg, setTiempoOciosoSeg] = useState(0);
+  const [tiempoDescansoSeg, setTiempoDescansoSeg] = useState(0);
   const [estaOcioso, setEstaOcioso] = useState(false);
 
   const ultimoMovimientoRef = useRef<number>(Date.now());
@@ -22,6 +23,12 @@ export function useMedidorDedicacion(activo: boolean) {
     window.addEventListener('scroll', registrarActividad);
 
     const intervalo = setInterval(() => {
+      if (enDescanso) {
+        setTiempoDescansoSeg((prev) => prev + 1);
+        setEstaOcioso(false);
+        return;
+      }
+
       const transcurridoInactivo = Date.now() - ultimoMovimientoRef.current;
       if (transcurridoInactivo >= UMBRAL_OCIOSO_MS) {
         setEstaOcioso(true);
@@ -39,11 +46,12 @@ export function useMedidorDedicacion(activo: boolean) {
       window.removeEventListener('scroll', registrarActividad);
       clearInterval(intervalo);
     };
-  }, [activo, estaOcioso]);
+  }, [activo, enDescanso, estaOcioso]);
 
   return {
     tiempoActivoSeg,
     tiempoOciosoSeg,
+    tiempoDescansoSeg,
     estaOcioso,
   };
 }

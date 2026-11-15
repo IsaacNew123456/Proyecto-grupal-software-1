@@ -1,5 +1,5 @@
-import React from 'react';
-import { Eye, EyeOff, ShieldAlert } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Eye, EyeOff, ShieldAlert, ExternalLink } from 'lucide-react';
 
 interface VisorMonitoreoCamaraProps {
   videoRef: React.RefObject<HTMLVideoElement | null>;
@@ -22,7 +22,36 @@ export const VisorMonitoreoCamara: React.FC<VisorMonitoreoCamaraProps> = ({
   modoDiscreto,
   alAlternarModoDiscreto,
 }) => {
+  const [pipActivo, setPipActivo] = useState(false);
   const posturaEnRiesgo = anguloCuello > 20 || anguloTronco > 20;
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const alEntrarPip = () => setPipActivo(true);
+    const alSalirPip = () => setPipActivo(false);
+
+    video.addEventListener('enterpictureinpicture', alEntrarPip);
+    video.addEventListener('leavepictureinpicture', alSalirPip);
+
+    return () => {
+      video.removeEventListener('enterpictureinpicture', alEntrarPip);
+      video.removeEventListener('leavepictureinpicture', alSalirPip);
+    };
+  }, [videoRef]);
+
+  const alternarPip = useCallback(async () => {
+    try {
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+      } else if (videoRef.current && document.pictureInPictureEnabled) {
+        await videoRef.current.requestPictureInPicture();
+      }
+    } catch (err) {
+      console.warn('Picture-in-Picture no disponible o denegado:', err);
+    }
+  }, [videoRef]);
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden flex flex-col">
@@ -35,15 +64,31 @@ export const VisorMonitoreoCamara: React.FC<VisorMonitoreoCamaraProps> = ({
           </span>
         </div>
 
-        <button
-          type="button"
-          onClick={alAlternarModoDiscreto}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 transition-colors cursor-pointer"
-          title={modoDiscreto ? 'Mostrar visor' : 'Ocultar video por privacidad'}
-        >
-          {modoDiscreto ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-          <span>{modoDiscreto ? 'Ver Cámara' : 'Modo Discreto'}</span>
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={alAlternarModoDiscreto}
+            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 transition-colors cursor-pointer"
+            title={modoDiscreto ? 'Mostrar visor' : 'Ocultar video por privacidad'}
+          >
+            {modoDiscreto ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+            <span className="hidden sm:inline">{modoDiscreto ? 'Ver Cámara' : 'Modo Discreto'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={alternarPip}
+            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
+              pipActivo
+                ? 'bg-emerald-50 border-emerald-300 text-emerald-700 font-semibold'
+                : 'border-slate-200 text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+            }`}
+            title="Abrir Ventana Flotante (Picture-in-Picture)"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            <span>{pipActivo ? 'Flotante Activo' : 'Ventana Flotante'}</span>
+          </button>
+        </div>
       </div>
 
       <div className="relative w-full aspect-4/3 bg-slate-900 flex items-center justify-center overflow-hidden">
