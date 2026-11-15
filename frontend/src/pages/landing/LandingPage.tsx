@@ -3,71 +3,37 @@ import { Link } from 'react-router-dom';
 import {
   Activity,
   ArrowRight,
-  Eye,
-  Lock,
-  Monitor,
   ShieldCheck,
-  Users,
-  Zap,
-  FileText,
   CheckCircle2,
   ChevronDown,
+  ChevronUp,
+  Sparkles,
+  HeartPulse,
+  Eye,
+  FileCheck2,
+  Clock,
+  Lock,
+  Smile,
+  Laptop,
+  HelpCircle,
+  Award,
+  Zap,
 } from 'lucide-react';
 import { LogoErgoCheck } from '../../components/ui/LogoErgoCheck';
 import './landing.css';
 
-/* ── Telemetría ficticia en tiempo real ───────────────────────── */
-const flujoTelemetria = [
-  { ts: '00:00.014', tipo: 'POSE', dato: 'neck_angle=12.3°  trunk=5.1°  RULA=2' },
-  { ts: '00:00.028', tipo: 'IRIS', dato: 'pitch=-1.2°  yaw=0.8°  gaze=FRONTAL' },
-  { ts: '00:00.042', tipo: 'FRAME', dato: 'processed  retained=0B  hash=discarded' },
-  { ts: '00:00.057', tipo: 'POSE', dato: 'neck_angle=14.7°  trunk=6.2°  RULA=2' },
-  { ts: '00:00.071', tipo: 'ALERT', dato: 'ergobreak suggested  rest=120s' },
-  { ts: '00:00.085', tipo: 'IRIS', dato: 'pitch=-2.1°  yaw=1.4°  gaze=FRONTAL' },
-  { ts: '00:00.099', tipo: 'FRAME', dato: 'processed  retained=0B  hash=discarded' },
-  { ts: '00:00.113', tipo: 'POSE', dato: 'neck_angle=11.9°  trunk=4.8°  RULA=1' },
-];
-
-/* ── Módulos del sistema ──────────────────────────────────────── */
-const modulos = [
-  {
-    icono: Activity,
-    titulo: 'Ergonomía RULA Continua',
-    descripcion: 'Inferencia biomecánica 1:1 en el navegador. Ángulos de cuello, tronco y brazos evaluados por ISO 11226 sin enviar un solo píxel al servidor.',
-    etiqueta: 'Sprint 1–2',
-    color: 'emerald',
-  },
-  {
-    icono: Eye,
-    titulo: 'Supervisión Ocular & Anti-Fraude',
-    descripcion: 'Estimación de cabeza PnP y vector de mirada por iris. Detecta desvíos a celulares, múltiples rostros y pérdida de foco de pantalla.',
-    etiqueta: 'Sprint 3',
-    color: 'amber',
-  },
-  {
-    icono: Monitor,
-    titulo: 'Mosaico en Vivo vía WebSocket',
-    descripcion: 'Consola de semáforo de 5 estados actualizada en tiempo real. Watchdog timer de 15s marca puestos desconectados automáticamente.',
-    etiqueta: 'Sprint 4',
-    color: 'sky',
-  },
-  {
-    icono: FileText,
-    titulo: 'Bitácora WORM & Reportes',
-    descripcion: 'Registro encadenado con SHA-256. Dictámenes forenses en PDF y reportes ergonómicos corporativos en Excel multi-pestaña.',
-    etiqueta: 'Sprint 4',
-    color: 'violet',
-  },
-];
-
-/* ── Hook: intersection reveal ──────────────────────────────────── */
+/* ── Hook: Intersection Reveal para animaciones fluidas al hacer scroll ── */
 function useReveal() {
   const ref = useRef<HTMLElement>(null);
   useEffect(() => {
     if (!ref.current) return;
     const obs = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { (entry.target as HTMLElement).classList.add('is-visible'); } },
-      { threshold: 0.15 }
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          (entry.target as HTMLElement).classList.add('is-visible');
+        }
+      },
+      { threshold: 0.12 }
     );
     obs.observe(ref.current);
     return () => obs.disconnect();
@@ -75,311 +41,639 @@ function useReveal() {
   return ref;
 }
 
-/* ── Componente: Terminal de telemetría ─────────────────────────── */
-function TerminalTelemetria() {
-  const [lineas, setLineas] = useState<typeof flujoTelemetria>([]);
-  const [idx, setIdx] = useState(0);
+/* ── Preguntas Frecuentes (FAQ) ── */
+const preguntasFrecuentes = [
+  {
+    pregunta: '¿Mis colaboradores necesitan instalar algún programa o extensión?',
+    respuesta:
+      'No. ErgoCheck AI funciona 100% en el navegador web (Google Chrome, Edge, Safari, Brave). Solo abren el enlace proporcionado por su empresa y el sistema se activa al instante sin permisos de administrador.',
+  },
+  {
+    pregunta: '¿La cámara graba o guarda fotos de las personas?',
+    respuesta:
+      'Absolutamente no. La privacidad es nuestro pilar fundamental. La Inteligencia Artificial analiza la alineación postural en la memoria temporal de la computadora y descarta la imagen de inmediato. Jamás se sube video a ningún servidor.',
+  },
+  {
+    pregunta: '¿Cómo ayuda a la empresa a reducir costos laborales?',
+    respuesta:
+      'Las malas posturas frente a la computadora son la causa #1 de licencias por lumbalgia y síndrome de túnel carpiano. ErgoCheck AI previene lesiones tempranas, fomenta micropausas activas y genera reportes para cumplimiento de Salud y Seguridad en el Trabajo (SST).',
+  },
+  {
+    pregunta: '¿Cómo funciona la supervisión para exámenes y entrevistas?',
+    respuesta:
+      'El sistema detecta si el postulante mantiene su atención en la prueba, si hay distractores en el entorno o personas adicionales, garantizando evaluaciones transparentes sin invadir la privacidad.',
+  },
+];
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setLineas(prev => {
-        const next = [...prev, flujoTelemetria[idx % flujoTelemetria.length]];
-        return next.slice(-8);
-      });
-      setIdx(i => i + 1);
-    }, 900);
-    return () => clearInterval(timer);
-  }, [idx]);
-
-  const colorTipo: Record<string, string> = {
-    POSE:  'text-emerald-400',
-    IRIS:  'text-sky-400',
-    FRAME: 'text-slate-500',
-    ALERT: 'text-amber-400',
-  };
+/* ── Componente: Showcase Interactivo del Producto para Clientes ── */
+function ShowcaseProducto() {
+  const [modo, setModo] = useState<'ergonomia' | 'proctoring'>('ergonomia');
+  const [indicadorActivo, setIndicadorActivo] = useState<number | null>(null);
 
   return (
-    <div className="bg-[#060d1a] border border-slate-800 rounded-2xl overflow-hidden shadow-2xl shadow-black/40 relative">
-      {/* Barra de título */}
-      <div className="flex items-center gap-2 px-4 py-3 bg-slate-900 border-b border-slate-800">
-        <span className="w-3 h-3 rounded-full bg-rose-500 opacity-80" />
-        <span className="w-3 h-3 rounded-full bg-amber-500 opacity-80" />
-        <span className="w-3 h-3 rounded-full bg-emerald-500 opacity-80" />
-        <span className="ml-3 text-xs font-mono text-slate-400 tracking-wide">ergocheck-ai · edge-sensor · /telemetry</span>
-        <span className="ml-auto flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 lp-pulse" />
-          <span className="text-[10px] font-mono text-emerald-400">LIVE</span>
-        </span>
-      </div>
+    <div className="relative w-full max-w-xl mx-auto">
+      {/* Resplandor ambiental de fondo */}
+      <div className="absolute -inset-1.5 bg-gradient-to-r from-emerald-500/30 to-sky-500/20 rounded-3xl blur-xl opacity-75 group-hover:opacity-100 transition duration-1000" />
 
-      {/* Línea de scan */}
-      <div className="relative h-0.5 overflow-hidden bg-transparent">
-        <div className="lp-scanline absolute inset-0 bg-gradient-to-b from-transparent via-emerald-400/30 to-transparent h-24 -top-12" />
-      </div>
-
-      {/* Datos */}
-      <div className="p-4 space-y-1.5 min-h-[220px] font-mono text-xs">
-        {lineas.map((l, i) => (
-          <div key={i} className="flex gap-3 items-baseline lp-count-up" style={{ animationDelay: `${i * 30}ms` }}>
-            <span className="text-slate-600 shrink-0 w-16">{l.ts}</span>
-            <span className={`shrink-0 w-14 font-semibold ${colorTipo[l.tipo] ?? 'text-slate-400'}`}>{l.tipo}</span>
-            <span className="text-slate-300 leading-relaxed">{l.dato}</span>
+      {/* Contenedor principal de la tarjeta */}
+      <div className="relative bg-[#0F172A]/90 backdrop-blur-xl border border-slate-700/80 rounded-2xl overflow-hidden shadow-2xl">
+        
+        {/* Barra superior con selector de vista (Tabs interactivos) */}
+        <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-slate-900/90 border-b border-slate-800">
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full bg-rose-500/80" />
+            <span className="w-3 h-3 rounded-full bg-amber-500/80" />
+            <span className="w-3 h-3 rounded-full bg-emerald-500/80" />
+            <span className="ml-2 text-xs font-medium text-slate-300">
+              Vista previa interactiva
+            </span>
           </div>
-        ))}
-        <div className="flex gap-3 items-baseline pt-1">
-          <span className="text-slate-600 w-16 shrink-0">&nbsp;</span>
-          <span className="text-emerald-400">▸<span className="lp-cursor" /></span>
+
+          {/* Switch interactivo amigable para el cliente */}
+          <div className="flex items-center bg-slate-950/80 p-1 rounded-xl border border-slate-800 text-xs">
+            <button
+              type="button"
+              onClick={() => setModo('ergonomia')}
+              className={`px-3 py-1 rounded-lg font-medium transition-all duration-200 flex items-center gap-1.5 ${
+                modo === 'ergonomia'
+                  ? 'bg-emerald-500 text-slate-950 shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <HeartPulse className="w-3.5 h-3.5" />
+              Salud Postural
+            </button>
+            <button
+              type="button"
+              onClick={() => setModo('proctoring')}
+              className={`px-3 py-1 rounded-lg font-medium transition-all duration-200 flex items-center gap-1.5 ${
+                modo === 'proctoring'
+                  ? 'bg-emerald-500 text-slate-950 shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Eye className="w-3.5 h-3.5" />
+              Supervisión
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Pie con métricas */}
-      <div className="border-t border-slate-800 px-4 py-3 grid grid-cols-3 gap-4 text-center">
-        {[
-          { v: '0 B', l: 'Video almacenado' },
-          { v: '< 150B', l: 'Telemetría / frame' },
-          { v: 'SHA-256', l: 'Integridad WORM' },
-        ].map(({ v, l }) => (
-          <div key={l}>
-            <div className="text-emerald-400 font-mono font-bold text-sm">{v}</div>
-            <div className="text-[10px] text-slate-500 mt-0.5">{l}</div>
+        {/* Área visual central con la imagen renderizada y elementos interactivos */}
+        <div className="relative h-[290px] sm:h-[320px] overflow-hidden bg-slate-950 flex items-center justify-center">
+          {/* Imagen ilustrativa generada de alta calidad */}
+          <img
+            src="/assets/ergocheck_hero.jpg"
+            alt="ErgoCheck AI Análisis Postural"
+            className="w-full h-full object-cover object-center opacity-85 transition-all duration-700 hover:scale-105"
+            onError={(e) => {
+              // Fallback estético si la imagen tarda en cargar
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+
+          {/* Gradiente oscuro sobre la imagen para legibilidad */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A] via-transparent to-black/30 pointer-events-none" />
+
+          {/* Badge en vivo flotante superior */}
+          <div className="absolute top-4 left-4 bg-slate-900/85 backdrop-blur-md border border-emerald-500/40 text-emerald-300 text-xs px-3 py-1.5 rounded-full flex items-center gap-2 shadow-lg lp-float">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 lp-indicator-live" />
+            <span className="font-semibold tracking-wide">
+              {modo === 'ergonomia' ? 'Análisis Ergonómico Activo' : 'Supervisión en Curso'}
+            </span>
           </div>
-        ))}
+
+          {/* Tarjeta flotante superior derecha: Puntuación de Bienestar */}
+          <div className="absolute top-4 right-4 bg-slate-900/90 backdrop-blur-md border border-slate-700 text-white p-3 rounded-xl shadow-xl lp-float-reverse hover:border-emerald-400 transition-colors">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-sm">
+                {modo === 'ergonomia' ? '98%' : '100%'}
+              </div>
+              <div>
+                <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
+                  {modo === 'ergonomia' ? 'Puntaje Ergonómico' : 'Atención y Foco'}
+                </p>
+                <p className="text-xs font-bold text-emerald-400">
+                  {modo === 'ergonomia' ? 'Excelente Postura' : 'Postulante Enfocado'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Alerta inteligente flotante en la parte inferior */}
+          <div className="absolute bottom-4 left-4 right-4 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-3.5 rounded-xl shadow-lg">
+            {modo === 'ergonomia' ? (
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0">
+                  <Smile className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-slate-100 flex items-center gap-1.5">
+                    Hábito Saludable Recomendado
+                    <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-medium">
+                      En 20 min
+                    </span>
+                  </p>
+                  <p className="text-xs text-slate-300 truncate">
+                    Tómate 2 minutos para relajar hombros y mirar al horizonte.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-sky-500/15 border border-sky-500/30 text-sky-400 flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-slate-100 flex items-center gap-1.5">
+                    Entorno de Evaluación Verificado
+                    <span className="text-[10px] bg-sky-500/20 text-sky-300 px-2 py-0.5 rounded-full font-medium">
+                      Seguro
+                    </span>
+                  </p>
+                  <p className="text-xs text-slate-300 truncate">
+                    Sin distractores externos. Foco visual 100% en la prueba.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Panel inferior interactivo con indicadores que reaccionan al mouse */}
+        <div className="p-4 bg-slate-900/95 border-t border-slate-800 grid grid-cols-3 gap-2 text-center">
+          {(modo === 'ergonomia'
+            ? [
+                { label: 'Alineación de Cuello', val: 'Correcta (12°)', color: 'text-emerald-400' },
+                { label: 'Espalda y Tronco', val: 'Ergonómica', color: 'text-emerald-400' },
+                { label: 'Pausa Sugerida', val: 'En 25 min', color: 'text-sky-400' },
+              ]
+            : [
+                { label: 'Mirada en Pantalla', val: 'Constante', color: 'text-emerald-400' },
+                { label: 'Dispositivos Externos', val: '0 Detectados', color: 'text-emerald-400' },
+                { label: 'Privacidad', val: '100% Protegida', color: 'text-emerald-400' },
+              ]
+          ).map((item, i) => (
+            <div
+              key={item.label}
+              onMouseEnter={() => setIndicadorActivo(i)}
+              onMouseLeave={() => setIndicadorActivo(null)}
+              className={`p-2.5 rounded-xl border transition-all duration-200 cursor-pointer ${
+                indicadorActivo === i
+                  ? 'bg-slate-800 border-emerald-500/60 scale-105 shadow-md'
+                  : 'bg-slate-950/60 border-slate-800/80 hover:border-slate-700'
+              }`}
+            >
+              <p className={`text-xs font-bold ${item.color}`}>{item.val}</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">{item.label}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
-/* ── Componente principal ───────────────────────────────────────── */
+/* ── Componente Principal de Landing Page ── */
 export function LandingPage() {
-  const refModulos   = useReveal() as React.RefObject<HTMLElement>;
-  const refPriv      = useReveal() as React.RefObject<HTMLElement>;
-  const refPlanes    = useReveal() as React.RefObject<HTMLElement>;
-  const refFooter    = useReveal() as React.RefObject<HTMLElement>;
+  const refBeneficios = useReveal() as React.RefObject<HTMLElement>;
+  const refPrivacidad = useReveal() as React.RefObject<HTMLElement>;
+  const refPlanes = useReveal() as React.RefObject<HTMLElement>;
+  const refFAQ = useReveal() as React.RefObject<HTMLElement>;
+  const [faqAbierto, setFaqAbierto] = useState<number | null>(0);
 
   return (
-    <div className="lp-root min-h-screen flex flex-col text-slate-100">
+    <div className="lp-root min-h-screen flex flex-col bg-[#0B1120] text-slate-100">
 
-      {/* ══ NAVBAR ════════════════════════════════════════════════ */}
-      <nav className="sticky top-0 z-50 bg-[#0B1120]/90 backdrop-blur-md border-b border-slate-800/60">
-        <div className="max-w-6xl mx-auto px-5 h-14 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center group-hover:border-emerald-400/60 transition-colors">
-              <LogoErgoCheck className="w-4 h-4" size={16} />
+      {/* ══ 1. BARRA DE NAVEGACIÓN ══════════════════════════════════ */}
+      <nav className="sticky top-0 z-50 bg-[#0B1120]/90 backdrop-blur-md border-b border-slate-800/80">
+        <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
+          {/* Logo y Nombre */}
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center group-hover:scale-105 group-hover:border-emerald-400 transition-all">
+              <LogoErgoCheck className="w-5 h-5" size={20} />
             </div>
-            <span className="font-bold text-sm text-white tracking-tight">ErgoCheck AI</span>
+            <div>
+              <span className="font-extrabold text-base text-white tracking-tight">ErgoCheck AI</span>
+              <span className="hidden sm:inline-block ml-2 text-[10px] font-medium text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                Bienestar & Seguridad
+              </span>
+            </div>
           </Link>
 
-          <div className="hidden sm:flex items-center gap-6 text-xs font-medium text-slate-400">
-            <a href="#modulos" className="hover:text-white transition-colors">Módulos</a>
-            <a href="#privacidad" className="hover:text-white transition-colors">Privacidad</a>
-            <a href="#planes" className="hover:text-white transition-colors">Planes</a>
+          {/* Enlaces de navegación */}
+          <div className="hidden md:flex items-center gap-7 text-xs font-medium text-slate-300">
+            <a href="#beneficios" className="hover:text-emerald-400 transition-colors">
+              Beneficios
+            </a>
+            <a href="#privacidad" className="hover:text-emerald-400 transition-colors">
+              Privacidad Total
+            </a>
+            <a href="#planes" className="hover:text-emerald-400 transition-colors">
+              Planes
+            </a>
+            <a href="#preguntas" className="hover:text-emerald-400 transition-colors">
+              Preguntas Frecuentes
+            </a>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Link to="/login" className="text-xs font-semibold text-slate-300 hover:text-white px-3 py-1.5 rounded-lg hover:bg-slate-800 transition-colors">
-              Iniciar sesión
+          {/* Acciones principales */}
+          <div className="flex items-center gap-3">
+            <Link
+              to="/login"
+              className="text-xs font-semibold text-slate-300 hover:text-white px-3.5 py-2 rounded-xl hover:bg-slate-800/80 transition-all"
+            >
+              Iniciar Sesión
             </Link>
-            <Link to="/registro" className="inline-flex items-center gap-1.5 text-xs font-semibold bg-emerald-500 text-slate-950 px-3.5 py-1.5 rounded-lg hover:bg-emerald-400 transition-colors shadow-sm shadow-emerald-900/40">
-              Comenzar
+            <Link
+              to="/registro"
+              className="lp-btn-primary inline-flex items-center gap-2 text-xs font-bold text-slate-950 px-4 py-2.5 rounded-xl transition-all"
+            >
+              Comenzar Gratis
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* ══ HERO ══════════════════════════════════════════════════ */}
-      <section className="lp-bg-hero lp-grid-lines flex-1">
-        <div className="max-w-6xl mx-auto px-5 pt-20 pb-28 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-
-          {/* Texto */}
-          <div className="space-y-7">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/8 text-xs font-mono text-emerald-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 lp-pulse" />
-              Edge AI · ISO 11226 · Zero-Image Retention
+      {/* ══ 2. HERO PRINCIPAL CENTRADO EN EL CLIENTE ══════════════ */}
+      <section className="lp-bg-hero lp-grid-lines flex-1 relative overflow-hidden">
+        <div className="max-w-6xl mx-auto px-5 pt-16 pb-24 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-14 items-center">
+          
+          {/* Lado Izquierdo: Propuesta de Valor clara y amigable */}
+          <div className="space-y-6 text-center lg:text-left">
+            {/* Badge de confianza */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-xs font-semibold text-emerald-300 shadow-sm">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+              Inteligencia Artificial para Bienestar Laboral y Evaluación
             </div>
 
-            <h1 className="text-4xl sm:text-5xl font-extrabold leading-[1.1] tracking-tight text-white">
-              Salud postural y supervisión&nbsp;
-              <span className="lp-gradient-text">sin un pixel</span> en la nube.
+            {/* Título Principal Atractivo */}
+            <h1 className="text-4xl sm:text-5xl font-black leading-[1.12] tracking-tight text-white">
+              Cuida la postura de tu equipo y supervisa evaluaciones{' '}
+              <span className="lp-gradient-text">con total privacidad.</span>
             </h1>
 
-            <p className="text-slate-400 text-base leading-relaxed max-w-md">
-              ErgoCheck AI evalúa ergonomía RULA y supervisa evaluaciones en tiempo real, directo en el navegador. 
-              La cámara nunca abandona el dispositivo.
+            {/* Subtítulo enfocado en soluciones para empresas */}
+            <p className="text-slate-300 text-base sm:text-lg leading-relaxed max-w-xl mx-auto lg:mx-0">
+              ErgoCheck AI previene dolores musculares y fatiga en tus colaboradores mediante corrección ergonómica amigable, y garantiza evaluaciones en línea confiables. 
+              <strong className="text-white font-semibold"> Todo directo en el navegador, sin grabar ni guardar video.</strong>
             </p>
 
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 pt-1">
-              <Link to="/registro" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm bg-emerald-500 text-slate-950 hover:bg-emerald-400 shadow-lg shadow-emerald-950/40 transition-all group">
-                Registrar empresa
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+            {/* Botones de Acción */}
+            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
+              <Link
+                to="/registro"
+                className="lp-btn-primary w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl font-bold text-sm text-slate-950 group"
+              >
+                Probar gratis en mi empresa
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link to="/login" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm border border-slate-700 text-slate-200 hover:border-slate-500 hover:text-white transition-colors">
-                <Lock className="w-3.5 h-3.5 text-slate-500" />
-                Acceso corporativo
-              </Link>
+              <a
+                href="#beneficios"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-semibold text-sm border border-slate-700 bg-slate-900/60 text-slate-200 hover:border-slate-500 hover:text-white transition-all hover:bg-slate-800/60"
+              >
+                Ver cómo funciona
+              </a>
             </div>
 
-            <div className="flex flex-wrap gap-x-5 gap-y-2 pt-1 text-xs text-slate-500">
-              {['Consentimiento digital obligatorio', 'Multi-tenant aislado', 'Sin instalación'].map(g => (
-                <span key={g} className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  {g}
-                </span>
-              ))}
+            {/* Puntos de confianza sin tecnicismos */}
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-6 gap-y-2 pt-2 text-xs text-slate-400">
+              <span className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                Cero instalación de software
+              </span>
+              <span className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                100% confidencial y privado
+              </span>
+              <span className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                Listo en 2 minutos
+              </span>
             </div>
           </div>
 
-          {/* Terminal */}
-          <TerminalTelemetria />
+          {/* Lado Derecho: Showcase visual e interactivo (reemplazo del código técnico) */}
+          <div className="flex justify-center items-center">
+            <ShowcaseProducto />
+          </div>
         </div>
 
-        {/* Flecha scroll-hint */}
-        <div className="flex justify-center pb-10 -mt-14">
-          <a href="#modulos" aria-label="Ver módulos">
-            <ChevronDown className="w-6 h-6 text-slate-600 animate-bounce" />
+        {/* Flecha indicadora de scroll */}
+        <div className="flex justify-center pb-8 -mt-6">
+          <a
+            href="#beneficios"
+            aria-label="Ver beneficios"
+            className="p-2 rounded-full text-slate-500 hover:text-emerald-400 hover:bg-slate-800/50 transition-colors animate-bounce"
+          >
+            <ChevronDown className="w-6 h-6" />
           </a>
         </div>
       </section>
 
-      {/* ══ MÓDULOS ═══════════════════════════════════════════════ */}
-      <section id="modulos" ref={refModulos as React.RefObject<HTMLDivElement>}
-        className="bg-[#F8FAFC] py-24 lp-reveal">
-        <div className="max-w-6xl mx-auto px-5">
-          <div className="mb-14">
-            <p className="text-xs font-mono text-emerald-600 mb-2">Capacidades del sistema</p>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight max-w-xl leading-tight">
-              Cuatro módulos. Una sola plataforma.
-            </h2>
+      {/* ══ 3. CINTA DE IMPACTO Y MÉTRICAS CLAVE ══════════════════ */}
+      <section className="bg-slate-900 border-y border-slate-800 py-10">
+        <div className="max-w-6xl mx-auto px-5 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+          <div className="space-y-1">
+            <p className="text-3xl sm:text-4xl font-extrabold text-emerald-400">-40%</p>
+            <p className="text-xs sm:text-sm text-slate-300 font-medium">Dolores de cuello y espalda</p>
+            <p className="text-[11px] text-slate-400">Hábitos ergonómicos guiados</p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {modulos.map((m, i) => {
-              const Ic = m.icono;
-              const colorMap: Record<string, string> = {
-                emerald: 'bg-emerald-50 border-emerald-200 text-emerald-700',
-                amber:   'bg-amber-50 border-amber-200 text-amber-700',
-                sky:     'bg-sky-50 border-sky-200 text-sky-700',
-                violet:  'bg-violet-50 border-violet-200 text-violet-700',
-              };
-              return (
-                <div key={i} className={`lp-card bg-white rounded-2xl p-6 border border-slate-200/80 lp-reveal lp-reveal-delay-${i + 1}`}>
-                  <div className="flex items-start justify-between mb-4">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${colorMap[m.color]}`}>
-                      <Ic className="w-5 h-5" />
-                    </div>
-                    <span className="text-[10px] font-mono text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
-                      {m.etiqueta}
-                    </span>
-                  </div>
-                  <h3 className="text-base font-bold text-slate-900 mb-2">{m.titulo}</h3>
-                  <p className="text-sm text-slate-500 leading-relaxed">{m.descripcion}</p>
-                </div>
-              );
-            })}
+          <div className="space-y-1">
+            <p className="text-3xl sm:text-4xl font-extrabold text-sky-400">0 Bytes</p>
+            <p className="text-xs sm:text-sm text-slate-300 font-medium">Video en la nube</p>
+            <p className="text-[11px] text-slate-400">Procesamiento local 100% privado</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-3xl sm:text-4xl font-extrabold text-emerald-400">1 Clic</p>
+            <p className="text-xs sm:text-sm text-slate-300 font-medium">Acceso inmediato</p>
+            <p className="text-[11px] text-slate-400">Sin descargas ni configuraciones</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-3xl sm:text-4xl font-extrabold text-amber-400">100%</p>
+            <p className="text-xs sm:text-sm text-slate-300 font-medium">Cumplimiento SST</p>
+            <p className="text-[11px] text-slate-400">Reportes automáticos en PDF y Excel</p>
           </div>
         </div>
       </section>
 
-      {/* ══ PRIVACIDAD ════════════════════════════════════════════ */}
-      <section id="privacidad" ref={refPriv as React.RefObject<HTMLDivElement>}
-        className="bg-slate-900 py-24 lp-reveal">
-        <div className="max-w-6xl mx-auto px-5 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          <div className="space-y-6">
-            <p className="text-xs font-mono text-emerald-400">Privacy by Design</p>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
-              Zero-Image Retention.<br />No es un eslogan.
+      {/* ══ 4. BENEFICIOS PARA LA EMPRESA Y COLABORADORES ═════════ */}
+      <section
+        id="beneficios"
+        ref={refBeneficios as React.RefObject<HTMLDivElement>}
+        className="bg-[#F8FAFC] text-slate-900 py-24 lp-reveal"
+      >
+        <div className="max-w-6xl mx-auto px-5">
+          <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">
+              Todo en una sola solución
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900">
+              Diseñado para el bienestar de las personas y la tranquilidad de la empresa.
             </h2>
-            <p className="text-slate-400 text-sm leading-relaxed">
-              Cada fotograma de la cámara vive exactamente el tiempo necesario para ser procesado por MediaPipe en un 
-              Web Worker local. Después, desaparece. Sin almacenamiento. Sin transmisión. Sin rastro.
+            <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
+              Herramientas inteligentes y amigables que cuidan la salud ocupacional sin generar fricción en el día a día.
             </p>
-            <ul className="space-y-3">
-              {[
-                { icon: Zap,         text: 'Inferencia en RAM volátil del cliente' },
-                { icon: ShieldCheck, text: 'Telemetría numérica de <150 bytes por frame' },
-                { icon: Lock,        text: 'Consentimiento legal auditable por usuario' },
-                { icon: Users,       text: 'Aislamiento multi-tenant con guard criptográfico' },
-              ].map(({ icon: Icon, text }) => (
-                <li key={text} className="flex items-center gap-3 text-sm text-slate-300">
-                  <Icon className="w-4 h-4 text-emerald-500 shrink-0" />
-                  {text}
-                </li>
-              ))}
-            </ul>
           </div>
 
-          {/* Comparativa visual */}
-          <div className="space-y-3">
-            <div className="bg-slate-800/60 border border-rose-500/20 rounded-2xl p-5 space-y-2">
-              <p className="text-xs font-mono text-rose-400 mb-3">Monitoreo Convencional</p>
-              {['Video grabado y almacenado en servidores externos', 'Transmisión continua de alta bandwidth', 'Riesgo real de filtración o acceso no autorizado'].map(t => (
-                <div key={t} className="flex items-start gap-2 text-xs text-slate-400">
-                  <span className="text-rose-500 mt-0.5 shrink-0">✕</span>{t}
-                </div>
-              ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-7">
+            {/* Beneficio 1 */}
+            <div className="lp-feature-card bg-white rounded-2xl p-7 shadow-sm">
+              <div className="lp-icon-box w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center mb-5">
+                <HeartPulse className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">
+                Corrección Postural en Tiempo Real
+              </h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                El sistema detecta cuando el colaborador se encorva o acerca demasiado la vista a la pantalla, mostrando avisos sutiles y amigables para corregir la postura antes de que cause dolor.
+              </p>
             </div>
-            <div className="bg-emerald-950/40 border border-emerald-500/30 rounded-2xl p-5 space-y-2">
-              <p className="text-xs font-mono text-emerald-400 mb-3">ErgoCheck AI Edge</p>
-              {['Cero bytes de video almacenados o transmitidos', 'Solo vectores numéricos angulares viajan al backend', 'Bitácora WORM verificable con SHA-256'].map(t => (
-                <div key={t} className="flex items-start gap-2 text-xs text-slate-300">
-                  <span className="text-emerald-400 mt-0.5 shrink-0">✓</span>{t}
-                </div>
-              ))}
+
+            {/* Beneficio 2 */}
+            <div className="lp-feature-card bg-white rounded-2xl p-7 shadow-sm">
+              <div className="lp-icon-box w-12 h-12 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center mb-5">
+                <Clock className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">
+                Pausas Activas Programadas (ErgoBreak)
+              </h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                Recomendaciones automáticas de estiramiento y descanso visual de 2 minutos. Ayuda a recargar energía, reduce la fatiga visual y eleva la concentración en jornadas extensas.
+              </p>
+            </div>
+
+            {/* Beneficio 3 */}
+            <div className="lp-feature-card bg-white rounded-2xl p-7 shadow-sm">
+              <div className="lp-icon-box w-12 h-12 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center mb-5">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">
+                Supervisión Confiable y Respetuosa
+              </h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                Para procesos de selección, evaluaciones y exámenes. Detecta desvíos de atención o presencia de dispositivos externos con total transparencia y sin guardar imágenes del postulante.
+              </p>
+            </div>
+
+            {/* Beneficio 4 */}
+            <div className="lp-feature-card bg-white rounded-2xl p-7 shadow-sm">
+              <div className="lp-icon-box w-12 h-12 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center mb-5">
+                <FileCheck2 className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">
+                Reportes y Certificados en 1 Clic
+              </h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                Genera al instante informes ergonómicos en Excel y dictámenes oficiales en PDF para Recursos Humanos y comités de Seguridad y Salud en el Trabajo (SST).
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ══ PLANES ════════════════════════════════════════════════ */}
-      <section id="planes" ref={refPlanes as React.RefObject<HTMLDivElement>}
-        className="bg-[#F8FAFC] py-24 lp-reveal">
-        <div className="max-w-6xl mx-auto px-5">
-          <div className="mb-14">
-            <p className="text-xs font-mono text-emerald-600 mb-2">Precios SaaS</p>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Sin contrato. Sin sorpresas.</h2>
+      {/* ══ 5. PRIVACIDAD TOTAL EXPLICADA SIMPLE ══════════════════ */}
+      <section
+        id="privacidad"
+        ref={refPrivacidad as React.RefObject<HTMLDivElement>}
+        className="bg-[#0B1120] py-24 lp-reveal border-t border-slate-800"
+      >
+        <div className="max-w-6xl mx-auto px-5 grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
+          <div className="space-y-6">
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+              Privacidad y Seguridad
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
+              Tu cámara jamás graba ni sube videos a la nube.
+            </h2>
+            <p className="text-slate-300 text-base leading-relaxed">
+              Sabemos que la privacidad de tu equipo es sagrada. Por eso, diseñamos ErgoCheck AI bajo la arquitectura 
+              <strong className="text-emerald-400 font-semibold"> Cero Retención de Imágenes</strong>:
+            </p>
+
+            <div className="space-y-3 pt-2">
+              {[
+                {
+                  title: 'Procesamiento 100% en el dispositivo',
+                  desc: 'La IA analiza la postura en la memoria RAM de tu computadora. La imagen nunca viaja por internet.',
+                },
+                {
+                  title: 'Cero grabaciones o capturas guardadas',
+                  desc: 'Una vez calculado el ángulo postural en milisegundos, el cuadro visual se borra de inmediato.',
+                },
+                {
+                  title: 'Consentimiento informado previo',
+                  desc: 'Cada usuario acepta expresamente el uso antes de activar la cámara, cumpliendo todas las normativas legales.',
+                },
+              ].map((item) => (
+                <div key={item.title} className="flex items-start gap-3.5">
+                  <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <CheckCircle2 className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-white">{item.title}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl">
-            {/* Plan 1 */}
-            <div className="lp-card bg-slate-900 border border-emerald-500/30 rounded-2xl p-7 flex flex-col justify-between">
+          {/* Comparativa visual amigable */}
+          <div className="space-y-4">
+            <div className="bg-rose-950/30 border border-rose-500/30 rounded-2xl p-6 space-y-3">
+              <p className="text-xs font-bold uppercase tracking-wider text-rose-400 flex items-center gap-2">
+                <span>✕</span> El riesgo con otros sistemas
+              </p>
+              <ul className="space-y-2 text-xs text-slate-300">
+                <li className="flex items-center gap-2">
+                  <span className="text-rose-400 font-bold">•</span>
+                  Graban y guardan horas continuas de video en servidores remotos.
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-rose-400 font-bold">•</span>
+                  Riesgo permanente de filtraciones de la intimidad del hogar o trabajo.
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-rose-400 font-bold">•</span>
+                  Consumo excesivo de ancho de banda y conexiones lentas.
+                </li>
+              </ul>
+            </div>
+
+            <div className="bg-emerald-950/40 border border-emerald-500/40 rounded-2xl p-6 space-y-3 lp-glow-pulse">
+              <p className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+                <span>✓</span> Con ErgoCheck AI
+              </p>
+              <ul className="space-y-2 text-xs text-slate-200">
+                <li className="flex items-center gap-2">
+                  <span className="text-emerald-400 font-bold">•</span>
+                  <strong className="text-white">Cero video grabado:</strong> La cámara solo calcula ángulos y se desecha al instante.
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-emerald-400 font-bold">•</span>
+                  Garantía total de privacidad para colaboradores en teletrabajo o presencial.
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-emerald-400 font-bold">•</span>
+                  Conexión ultra rápida y ultraligera que no satura el internet.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ══ 6. PLANES Y PRECIOS TRANSPARENTES ═════════════════════ */}
+      <section
+        id="planes"
+        ref={refPlanes as React.RefObject<HTMLDivElement>}
+        className="bg-[#F8FAFC] py-24 text-slate-900 lp-reveal"
+      >
+        <div className="max-w-6xl mx-auto px-5">
+          <div className="text-center max-w-xl mx-auto mb-16 space-y-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">
+              Inversión clara
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+              Planes simples. Sin contratos forzosos.
+            </h2>
+            <p className="text-slate-600 text-sm leading-relaxed">
+              Elige la modalidad que mejor se adapte al tamaño de tu empresa o a tus jornadas de evaluación.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* Plan 1: Salud Postural y Ergonomía */}
+            <div className="lp-interactive-card bg-slate-900 text-white border-2 border-emerald-500/50 rounded-2xl p-8 flex flex-col justify-between shadow-xl relative overflow-hidden">
+              <div className="absolute top-4 right-4 bg-emerald-500 text-slate-950 text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full">
+                Más Popular
+              </div>
+
               <div className="space-y-5">
                 <div>
-                  <p className="text-xs font-mono text-emerald-400 mb-1">Por puesto</p>
-                  <p className="text-3xl font-extrabold font-mono text-white">$19 <span className="text-sm font-normal text-slate-400">/ mes</span></p>
+                  <p className="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-1">
+                    Salud Postural Continua
+                  </p>
+                  <p className="text-4xl font-black text-white">
+                    $19 <span className="text-sm font-normal text-slate-400">/ puesto al mes</span>
+                  </p>
                 </div>
-                <h3 className="text-base font-bold text-white">Plan Profesional</h3>
-                <p className="text-xs text-slate-400">Ergonomía RULA continua para equipos en teletrabajo o presencial.</p>
-                <ul className="space-y-2 pt-2 border-t border-slate-800">
-                  {['Sensor biomecánico en vivo', 'Alertas y pausas ErgoBreak', 'Consola de supervisión mosaico', 'Reportes ISO 11226'].map(f => (
-                    <li key={f} className="flex items-center gap-2 text-xs text-slate-300">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />{f}
-                    </li>
-                  ))}
+
+                <h3 className="text-lg font-bold text-white">Plan Salud Ocupacional</h3>
+                <p className="text-xs text-slate-300">
+                  Ideal para equipos de oficina, teletrabajo y call centers que buscan cuidar la salud de sus trabajadores.
+                </p>
+
+                <ul className="space-y-3 pt-3 border-t border-slate-800 text-xs text-slate-200">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    Sensor ergonómico inteligente en vivo
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    Alertas suaves de mala postura y pausas activas
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    Panel de control general para Recursos Humanos
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    Reportes ergonómicos exportables en Excel
+                  </li>
                 </ul>
               </div>
-              <Link to="/registro?plan=SAAS_SEAT_MONTHLY" className="mt-6 block text-center py-2.5 rounded-xl text-sm font-semibold bg-emerald-500 text-slate-950 hover:bg-emerald-400 transition-colors">
-                Iniciar prueba gratuita
+
+              <Link
+                to="/registro?plan=SAAS_SEAT_MONTHLY"
+                className="lp-btn-primary mt-8 block text-center py-3 rounded-xl font-bold text-sm text-slate-950 transition-all"
+              >
+                Comenzar prueba gratuita
               </Link>
             </div>
 
-            {/* Plan 2 */}
-            <div className="lp-card bg-white border border-slate-200 rounded-2xl p-7 flex flex-col justify-between">
+            {/* Plan 2: Supervisión y Evaluaciones */}
+            <div className="lp-interactive-card bg-white text-slate-900 border border-slate-200 rounded-2xl p-8 flex flex-col justify-between shadow-sm hover:border-slate-400 transition-all">
               <div className="space-y-5">
                 <div>
-                  <p className="text-xs font-mono text-slate-500 mb-1">Base 50 exámenes</p>
-                  <p className="text-3xl font-extrabold font-mono text-slate-900">$35 <span className="text-sm font-normal text-slate-400">/ paquete</span></p>
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+                    Supervisión Anti-Fraude
+                  </p>
+                  <p className="text-4xl font-black text-slate-900">
+                    $35 <span className="text-sm font-normal text-slate-500">/ paquete 50 pruebas</span>
+                  </p>
                 </div>
-                <h3 className="text-base font-bold text-slate-900">Paquete Proctoring</h3>
-                <p className="text-xs text-slate-500">Supervisión anti-fraude para evaluaciones psicotécnicas y entrevistas.</p>
-                <ul className="space-y-2 pt-2 border-t border-slate-200">
-                  {['Seguimiento ocular PnP + iris', 'Detección de celulares y múltiples rostros', 'Bloqueo de atajos y portapapeles', 'Dictamen forense PDF SHA-256'].map(f => (
-                    <li key={f} className="flex items-center gap-2 text-xs text-slate-600">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />{f}
-                    </li>
-                  ))}
+
+                <h3 className="text-lg font-bold text-slate-900">Paquete Evaluaciones</h3>
+                <p className="text-xs text-slate-600">
+                  Perfecto para reclutamiento, entrevistas laborales y exámenes académicos o de certificación.
+                </p>
+
+                <ul className="space-y-3 pt-3 border-t border-slate-200 text-xs text-slate-700">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    Monitoreo de atención y foco en pantalla
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    Detección de dispositivos o personas adicionales
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    Protección contra atajos y copiado indebido
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    Certificado de autenticidad en PDF oficial
+                  </li>
                 </ul>
               </div>
-              <Link to="/registro?plan=PAY_PER_EXAM_PACKAGE" className="mt-6 block text-center py-2.5 rounded-xl text-sm font-semibold border border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white transition-colors">
+
+              <Link
+                to="/registro?plan=PAY_PER_EXAM_PACKAGE"
+                className="mt-8 block text-center py-3 rounded-xl font-bold text-sm border-2 border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white transition-all"
+              >
                 Contratar paquete
               </Link>
             </div>
@@ -387,20 +681,101 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ══ FOOTER ════════════════════════════════════════════════ */}
-      <footer ref={refFooter as React.RefObject<HTMLDivElement>}
-        className="bg-[#060d1a] border-t border-slate-800 py-10 lp-reveal">
+      {/* ══ 7. PREGUNTAS FRECUENTES (FAQ INTERACTIVO) ═════════════ */}
+      <section
+        id="preguntas"
+        ref={refFAQ as React.RefObject<HTMLDivElement>}
+        className="bg-[#0B1120] py-24 lp-reveal border-t border-slate-800"
+      >
+        <div className="max-w-4xl mx-auto px-5">
+          <div className="text-center mb-14 space-y-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+              Resolvemos tus dudas
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+              Preguntas Frecuentes
+            </h2>
+            <p className="text-slate-400 text-sm">
+              Todo lo que necesitas saber antes de implementar ErgoCheck AI en tu equipo.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {preguntasFrecuentes.map((item, index) => {
+              const estaAbierto = faqAbierto === index;
+              return (
+                <div
+                  key={item.pregunta}
+                  className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden transition-all duration-200 hover:border-slate-700"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setFaqAbierto(estaAbierto ? null : index)}
+                    className="w-full px-6 py-4 text-left flex items-center justify-between gap-4 font-semibold text-sm sm:text-base text-slate-100 hover:text-emerald-400 transition-colors"
+                  >
+                    <span>{item.pregunta}</span>
+                    <span className="text-slate-400 shrink-0">
+                      {estaAbierto ? (
+                        <ChevronUp className="w-5 h-5 text-emerald-400" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5" />
+                      )}
+                    </span>
+                  </button>
+
+                  {estaAbierto && (
+                    <div className="px-6 pb-5 text-xs sm:text-sm text-slate-400 leading-relaxed border-t border-slate-800/60 pt-3">
+                      {item.respuesta}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ══ 8. LLAMADA A LA ACCIÓN FINAL (CTA BANNER) ══════════════ */}
+      <section className="bg-gradient-to-b from-[#0B1120] to-[#060D1A] py-20 border-t border-slate-800 relative overflow-hidden">
+        <div className="max-w-4xl mx-auto px-5 text-center space-y-6 relative z-10">
+          <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto mb-2">
+            <Award className="w-7 h-7" />
+          </div>
+          <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
+            Empieza a cuidar la salud de tu equipo hoy mismo.
+          </h2>
+          <p className="text-slate-300 text-base sm:text-lg max-w-xl mx-auto">
+            Únete a las organizaciones que priorizan el bienestar ergonómico y las evaluaciones seguras sin invadir la privacidad.
+          </p>
+          <div className="pt-2">
+            <Link
+              to="/registro"
+              className="lp-btn-primary inline-flex items-center gap-2 px-8 py-4 rounded-xl font-extrabold text-base text-slate-950 shadow-xl"
+            >
+              Crear cuenta gratis para mi empresa
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ══ 9. FOOTER ═════════════════════════════════════════════ */}
+      <footer className="bg-[#050A14] border-t border-slate-800/80 py-10 text-xs text-slate-500">
         <div className="max-w-6xl mx-auto px-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-3">
             <div className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
               <LogoErgoCheck className="w-4 h-4" size={14} />
             </div>
-            <span className="text-sm font-bold text-white">ErgoCheck AI</span>
+            <span className="font-bold text-sm text-slate-200">ErgoCheck AI</span>
           </div>
-          <p className="text-xs text-slate-600">© {new Date().getFullYear()} ErgoCheck AI · ISO 11226 · Privacy by Design</p>
-          <div className="flex items-center gap-4 text-xs text-slate-500">
-            <Link to="/login" className="hover:text-slate-300 transition-colors">Acceso</Link>
-            <Link to="/registro" className="hover:text-slate-300 transition-colors">Registro</Link>
+          <p>© {new Date().getFullYear()} ErgoCheck AI. Todos los derechos reservados. Privacidad por diseño.</p>
+          <div className="flex items-center gap-5">
+            <Link to="/login" className="hover:text-slate-300 transition-colors">
+              Acceso Clientes
+            </Link>
+            <Link to="/registro" className="hover:text-slate-300 transition-colors">
+              Registro Empresas
+            </Link>
           </div>
         </div>
       </footer>

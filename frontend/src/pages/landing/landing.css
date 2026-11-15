@@ -1,111 +1,162 @@
 /* =====================================================================
-   ErgoCheck AI — Landing Page
-   Minimal, dark-first, motion que responde al usuario
+   ErgoCheck AI — Landing Page (Client-Centric & Interactive)
+   Paleta: Dark-first (#0B1120), Esmeralda (#10B981), Slate (#F8FAFC)
    ===================================================================== */
 
-/* ── Noise & ambient ──────────────────────────────────────────────── */
+/* ── Fondo y mallas ─────────────────────────────────────────────────── */
 .lp-bg-hero {
   background-color: #0B1120;
   background-image:
-    radial-gradient(ellipse 60% 40% at 50% -10%, rgba(16, 185, 129, 0.12) 0%, transparent 65%),
+    radial-gradient(ellipse 70% 50% at 50% -10%, rgba(16, 185, 129, 0.16) 0%, transparent 70%),
+    radial-gradient(circle at 85% 30%, rgba(56, 189, 248, 0.08) 0%, transparent 40%),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
 }
 
 .lp-grid-lines {
   background-image:
-    linear-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
-  background-size: 48px 48px;
+    linear-gradient(rgba(148, 163, 184, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
 }
 
-/* ── Typewriter cursor ──────────────────────────────────────────────── */
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
-}
-.lp-cursor {
-  display: inline-block;
-  width: 2px;
-  height: 1.1em;
-  background: #10b981;
-  margin-left: 2px;
-  vertical-align: text-bottom;
-  animation: blink 1s step-end infinite;
+/* ── Animaciones flotantes suaves (Float & Hover) ────────────────────── */
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(0.5deg);
+  }
 }
 
-/* ── Telemetría: líneas que viajan ──────────────────────────────────── */
-@keyframes scanline {
-  from { transform: translateY(-100%); opacity: 0; }
-  10%  { opacity: 1; }
-  90%  { opacity: 1; }
-  to   { transform: translateY(100%); opacity: 0; }
-}
-.lp-scanline {
-  animation: scanline 3s linear infinite;
+@keyframes floatReverse {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(8px) rotate(-0.5deg);
+  }
 }
 
-/* ── Entrada de secciones (Intersection Observer vía class toggle) ── */
-.lp-reveal {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.lp-reveal.is-visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-.lp-reveal-delay-1 { transition-delay: 80ms; }
-.lp-reveal-delay-2 { transition-delay: 160ms; }
-.lp-reveal-delay-3 { transition-delay: 240ms; }
-.lp-reveal-delay-4 { transition-delay: 320ms; }
-
-/* ── Pulso de datos en tiempo real ─────────────────────────────────── */
-@keyframes dataPulse {
-  0%   { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-  70%  { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-}
-.lp-pulse { animation: dataPulse 2s ease-out infinite; }
-
-/* ── Número animado (counter) ───────────────────────────────────────── */
-@keyframes countUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.lp-count-up { animation: countUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-
-/* ── Hover en tarjetas: elevación sutil ─────────────────────────────── */
-.lp-card {
-  transition:
-    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 0.2s ease;
-}
-.lp-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 32px -8px rgba(15, 23, 42, 0.12);
-  border-color: #cbd5e1;
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 35px rgba(16, 185, 129, 0.5);
+  }
 }
 
-/* ── Gradiente de texto ─────────────────────────────────────────────── */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.lp-float {
+  animation: floatSlow 5s ease-in-out infinite;
+}
+
+.lp-float-reverse {
+  animation: floatReverse 6s ease-in-out infinite;
+}
+
+.lp-glow-pulse {
+  animation: pulseGlow 4s ease-in-out infinite;
+}
+
+/* ── Botón Shimmer interactivo ───────────────────────────────────────── */
+.lp-btn-primary {
+  position: relative;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 20px -2px rgba(16, 185, 129, 0.4);
+}
+
+.lp-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px -4px rgba(16, 185, 129, 0.6);
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+}
+
+/* ── Tarjetas interactivas con elevación y borde luminoso ─────────────── */
+.lp-interactive-card {
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, box-shadow;
+}
+
+.lp-interactive-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.35);
+  border-color: rgba(16, 185, 129, 0.45);
+}
+
+/* ── Tarjeta de características (sección blanca) ─────────────────────── */
+.lp-feature-card {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.lp-feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px -10px rgba(15, 23, 42, 0.08);
+  border-color: #10b981;
+}
+
+.lp-feature-card:hover .lp-icon-box {
+  transform: scale(1.1) rotate(2deg);
+}
+
+.lp-icon-box {
+  transition: transform 0.3s ease;
+}
+
+/* ── Gradiente de texto fluido ───────────────────────────────────────── */
 .lp-gradient-text {
-  background: linear-gradient(135deg, #10b981 0%, #34d399 50%, #6ee7b7 100%);
+  background: linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* ── Scrollbar ──────────────────────────────────────────────────────── */
-.lp-root {
-  scrollbar-width: thin;
-  scrollbar-color: #334155 #0B1120;
+/* ── Indicador de estado con pulso ───────────────────────────────────── */
+@keyframes ringPulse {
+  0%   { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70%  { transform: scale(1);    box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }
 
-/* ── Reduced motion ─────────────────────────────────────────────────── */
+.lp-indicator-live {
+  animation: ringPulse 2.5s infinite;
+}
+
+/* ── Revelado al hacer scroll ────────────────────────────────────────── */
+.lp-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lp-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.lp-reveal-delay-1 { transition-delay: 100ms; }
+.lp-reveal-delay-2 { transition-delay: 200ms; }
+.lp-reveal-delay-3 { transition-delay: 300ms; }
+.lp-reveal-delay-4 { transition-delay: 400ms; }
+
+/* ── Accesibilidad: reducción de movimiento ─────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .lp-reveal { opacity: 1; transform: none; transition: none; }
-  .lp-cursor { animation: none; opacity: 1; }
-  .lp-pulse  { animation: none; }
-  .lp-scanline { animation: none; }
+  .lp-reveal, .lp-float, .lp-float-reverse, .lp-glow-pulse, .lp-indicator-live {
+    animation: none !important;
+    transform: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+  }
 }
