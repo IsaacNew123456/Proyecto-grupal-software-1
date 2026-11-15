@@ -1,0 +1,111 @@
+/* =====================================================================
+   ErgoCheck AI — Landing Page
+   Minimal, dark-first, motion que responde al usuario
+   ===================================================================== */
+
+/* ── Noise & ambient ──────────────────────────────────────────────── */
+.lp-bg-hero {
+  background-color: #0B1120;
+  background-image:
+    radial-gradient(ellipse 60% 40% at 50% -10%, rgba(16, 185, 129, 0.12) 0%, transparent 65%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+}
+
+.lp-grid-lines {
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* ── Typewriter cursor ──────────────────────────────────────────────── */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+.lp-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  background: #10b981;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: blink 1s step-end infinite;
+}
+
+/* ── Telemetría: líneas que viajan ──────────────────────────────────── */
+@keyframes scanline {
+  from { transform: translateY(-100%); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  to   { transform: translateY(100%); opacity: 0; }
+}
+.lp-scanline {
+  animation: scanline 3s linear infinite;
+}
+
+/* ── Entrada de secciones (Intersection Observer vía class toggle) ── */
+.lp-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.lp-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.lp-reveal-delay-1 { transition-delay: 80ms; }
+.lp-reveal-delay-2 { transition-delay: 160ms; }
+.lp-reveal-delay-3 { transition-delay: 240ms; }
+.lp-reveal-delay-4 { transition-delay: 320ms; }
+
+/* ── Pulso de datos en tiempo real ─────────────────────────────────── */
+@keyframes dataPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+  70%  { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+.lp-pulse { animation: dataPulse 2s ease-out infinite; }
+
+/* ── Número animado (counter) ───────────────────────────────────────── */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.lp-count-up { animation: countUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+/* ── Hover en tarjetas: elevación sutil ─────────────────────────────── */
+.lp-card {
+  transition:
+    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.2s ease;
+}
+.lp-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px -8px rgba(15, 23, 42, 0.12);
+  border-color: #cbd5e1;
+}
+
+/* ── Gradiente de texto ─────────────────────────────────────────────── */
+.lp-gradient-text {
+  background: linear-gradient(135deg, #10b981 0%, #34d399 50%, #6ee7b7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Scrollbar ──────────────────────────────────────────────────────── */
+.lp-root {
+  scrollbar-width: thin;
+  scrollbar-color: #334155 #0B1120;
+}
+
+/* ── Reduced motion ─────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .lp-reveal { opacity: 1; transform: none; transition: none; }
+  .lp-cursor { animation: none; opacity: 1; }
+  .lp-pulse  { animation: none; }
+  .lp-scanline { animation: none; }
+}
