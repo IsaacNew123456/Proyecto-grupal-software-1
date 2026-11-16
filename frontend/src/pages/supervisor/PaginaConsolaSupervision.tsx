@@ -176,7 +176,10 @@ export const PaginaConsolaSupervision: React.FC = () => {
       </div>
 
       {/* Mosaico de puestos en vivo (CU21) */}
-      <ConsolaMosaicoSemaforo />
+      <ConsolaMosaicoSemaforo
+        onSeleccionarSesion={(sid) => setSessionIdAuditoria(sid)}
+        sesionSeleccionadaId={sessionIdAuditoria}
+      />
 
       {/* Panel de correlación multidimensional (CU20) y auditoría (CU22) */}
       <div className="rounded-2xl bg-slate-900/40 border border-slate-800 p-5 space-y-4 shadow-sm">

@@ -81,9 +81,10 @@ export class SupervisionGateway implements OnGatewayInit, OnGatewayConnection, O
   }
 
   @SubscribeMessage('heartbeat')
-  handleHeartbeat(_client: Socket, payload: { sessionId: string }) {
-    if (this.puestos.has(payload.sessionId)) {
-      const puesto = this.puestos.get(payload.sessionId)!;
+  handleHeartbeat(client: Socket, payload?: { sessionId?: string }) {
+    const sessionId = payload?.sessionId || client.data?.sessionId;
+    if (sessionId && this.puestos.has(sessionId)) {
+      const puesto = this.puestos.get(sessionId)!;
       puesto.ultimoHeartbeat = Date.now();
       if (puesto.estado === 'GRIS') {
         puesto.estado = 'VERDE';
@@ -95,20 +96,21 @@ export class SupervisionGateway implements OnGatewayInit, OnGatewayConnection, O
 
   @SubscribeMessage('actualizar_estado')
   handleActualizarEstado(
-    _client: Socket,
+    client: Socket,
     payload: {
-      sessionId: string;
+      sessionId?: string;
       estado: EstadoSemaforo;
       rulaScore?: number;
       pitchEfectivo?: number;
       motivo?: string;
     },
   ) {
-    if (this.puestos.has(payload.sessionId)) {
-      const puesto = this.puestos.get(payload.sessionId)!;
+    const sessionId = payload.sessionId || client.data?.sessionId;
+    if (sessionId && this.puestos.has(sessionId)) {
+      const puesto = this.puestos.get(sessionId)!;
       puesto.estado = payload.estado;
-      puesto.rulaScore = payload.rulaScore;
-      puesto.pitchEfectivo = payload.pitchEfectivo;
+      if (payload.rulaScore !== undefined) puesto.rulaScore = payload.rulaScore;
+      if (payload.pitchEfectivo !== undefined) puesto.pitchEfectivo = payload.pitchEfectivo;
       puesto.motivoAlerta = payload.motivo;
       puesto.ultimoHeartbeat = Date.now();
       this.emitirActualizacionPuestos();
@@ -134,6 +136,7 @@ export class SupervisionGateway implements OnGatewayInit, OnGatewayConnection, O
   }
 
   public simularPuestosDemo(): PuestoMonitoreo[] {
+    this.puestos.clear();
     const ahora = Date.now();
     this.puestos.set('demo-puesto-1', {
       sessionId: 'demo-puesto-1',

@@ -4,7 +4,15 @@ import { useWebSocketSupervisor, EstadoSemaforo } from '../hooks/useWebSocketSup
 import { TarjetaSemaforo } from './TarjetaSemaforo';
 import { api } from '../../../api/client';
 
-export const ConsolaMosaicoSemaforo: React.FC = () => {
+interface Props {
+  onSeleccionarSesion?: (sessionId: string) => void;
+  sesionSeleccionadaId?: string;
+}
+
+export const ConsolaMosaicoSemaforo: React.FC<Props> = ({
+  onSeleccionarSesion,
+  sesionSeleccionadaId,
+}) => {
   const { puestos, conectado } = useWebSocketSupervisor();
   const [filtroEstado, setFiltroEstado] = useState<string>('TODOS');
   const [busqueda, setBusqueda] = useState<string>('');
@@ -185,7 +193,12 @@ export const ConsolaMosaicoSemaforo: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
           {puestosFiltrados.map((puesto) => (
-            <TarjetaSemaforo key={puesto.sessionId} puesto={puesto} />
+            <TarjetaSemaforo
+              key={puesto.sessionId}
+              puesto={puesto}
+              onSeleccionar={onSeleccionarSesion}
+              seleccionado={sesionSeleccionadaId === puesto.sessionId}
+            />
           ))}
         </div>
       )}
