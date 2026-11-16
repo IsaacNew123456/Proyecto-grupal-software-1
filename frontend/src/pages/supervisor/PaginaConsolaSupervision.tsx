@@ -173,13 +173,13 @@ export const PaginaConsolaSupervision: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Encabezado */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
-          <h2 className="text-xl font-bold text-slate-100 tracking-tight flex items-center gap-2">
-            <Monitor className="w-5 h-5 text-emerald-400" />
+          <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+            <Monitor className="w-5 h-5 text-emerald-600" />
             <span>Consola de Supervisión en Tiempo Real</span>
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Mosaico semáforo SST (CU21) y Motor de Correlación de reglas sobre ventanas deslizantes de 60s (CU20)
           </p>
         </div>
@@ -187,10 +187,10 @@ export const PaginaConsolaSupervision: React.FC = () => {
         <button
           onClick={generarSesionDemo}
           disabled={generandoDemo}
-          className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-500/20 to-sky-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold hover:border-emerald-400 transition-all flex items-center gap-1.5 shadow-sm"
+          className="px-3.5 py-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold hover:bg-emerald-100 transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
           title="Genera una sesión de prueba con eventos de postura, mirada y atajos para probar el motor"
         >
-          <Sparkles className={`w-3.5 h-3.5 text-emerald-400 ${generandoDemo ? 'animate-spin' : ''}`} />
+          <Sparkles className={`w-3.5 h-3.5 text-emerald-600 ${generandoDemo ? 'animate-spin' : ''}`} />
           <span>{generandoDemo ? 'Generando...' : 'Generar Sesión Demo con Eventos (CU20)'}</span>
         </button>
       </div>
@@ -202,14 +202,14 @@ export const PaginaConsolaSupervision: React.FC = () => {
       />
 
       {/* Panel de correlación multidimensional (CU20) y auditoría (CU22) */}
-      <div className="rounded-2xl bg-slate-900/40 border border-slate-800 p-5 space-y-4 shadow-sm">
+      <div className="rounded-2xl bg-white border border-slate-200/90 p-5 space-y-4 shadow-xs">
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
           <div>
-            <h3 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
               <span>Motor de Correlación Multidimensional (CU20)</span>
             </h3>
-            <p className="text-[11px] text-slate-400 font-mono mt-0.5">
+            <p className="text-[11px] text-slate-500 font-mono mt-0.5">
               Cruza postura RULA, vector de mirada y eventos en ventanas deslizantes para calificar severidad forense
             </p>
           </div>
@@ -219,7 +219,7 @@ export const PaginaConsolaSupervision: React.FC = () => {
             <select
               value={sessionIdAuditoria}
               onChange={(e) => setSessionIdAuditoria(e.target.value)}
-              className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 focus:outline-none focus:border-emerald-500 min-w-[240px]"
+              className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-700 focus:outline-none focus:border-emerald-500 focus:bg-white min-w-[240px] cursor-pointer"
             >
               <option value="">Seleccione una sesión...</option>
               {sesiones.map((s) => (
@@ -231,7 +231,7 @@ export const PaginaConsolaSupervision: React.FC = () => {
 
             <button
               onClick={() => cargarSesiones()}
-              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 transition-colors"
+              className="p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
               title="Refrescar lista de sesiones"
             >
               <RefreshCw className="w-3.5 h-3.5" />
@@ -240,7 +240,7 @@ export const PaginaConsolaSupervision: React.FC = () => {
             <button
               onClick={() => ejecutarCorrelacion()}
               disabled={correlacionando || !sessionIdAuditoria.trim()}
-              className="px-3.5 py-2 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs hover:bg-emerald-400 transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-40"
+              className="px-3.5 py-2 rounded-xl bg-emerald-600 text-white font-semibold text-xs hover:bg-emerald-700 transition-all flex items-center gap-1.5 shadow-2xs disabled:opacity-40 cursor-pointer"
             >
               <PlayCircle className={`w-3.5 h-3.5 ${correlacionando ? 'animate-spin' : ''}`} />
               <span>{correlacionando ? 'Evaluando...' : 'Correlación (CU20)'}</span>
@@ -249,10 +249,10 @@ export const PaginaConsolaSupervision: React.FC = () => {
             <button
               onClick={() => cerrarSesionActual()}
               disabled={cerrandoSesion || !sessionIdAuditoria.trim()}
-              className="px-3.5 py-2 rounded-xl bg-slate-800 text-slate-200 hover:text-white hover:bg-slate-700 border border-slate-700 font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-40"
+              className="px-3.5 py-2 rounded-xl bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 font-semibold text-xs transition-all flex items-center gap-1.5 shadow-2xs disabled:opacity-40 cursor-pointer"
               title="Cierra formalmente la sesión y persiste los índices sintéticos de integridad y bienestar (CU23)"
             >
-              <CheckCircle className={`w-3.5 h-3.5 text-emerald-400 ${cerrandoSesion ? 'animate-spin' : ''}`} />
+              <CheckCircle className={`w-3.5 h-3.5 text-emerald-600 ${cerrandoSesion ? 'animate-spin' : ''}`} />
               <span>{cerrandoSesion ? 'Cerrando...' : 'Cerrar Sesión (CU23)'}</span>
             </button>
           </div>
@@ -260,28 +260,28 @@ export const PaginaConsolaSupervision: React.FC = () => {
 
         {/* Mensaje de éxito de la correlación */}
         {mensajeExito && (
-          <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
+          <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>{mensajeExito}</span>
           </div>
         )}
 
         {/* Metadatos de la sesión activa */}
         {sesionActual && (
-          <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400 p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80 font-mono">
-            <span className="flex items-center gap-1.5 text-slate-200">
-              <User className="w-3.5 h-3.5 text-emerald-400" />
+          <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600 p-2.5 rounded-xl bg-slate-50 border border-slate-200 font-mono">
+            <span className="flex items-center gap-1.5 text-slate-900 font-medium">
+              <User className="w-3.5 h-3.5 text-emerald-600" />
               {sesionActual.usuario ? `${sesionActual.usuario.nombre} ${sesionActual.usuario.apellido}` : 'Usuario Demo'}
             </span>
-            <span className="flex items-center gap-1 text-slate-400">
-              <Layers className="w-3 h-3 text-sky-400" />
+            <span className="flex items-center gap-1 text-slate-600">
+              <Layers className="w-3 h-3 text-sky-600" />
               Tipo: {sesionActual.tipo}
             </span>
-            <span className="flex items-center gap-1 text-slate-400">
-              <Clock className="w-3 h-3 text-amber-400" />
+            <span className="flex items-center gap-1 text-slate-600">
+              <Clock className="w-3 h-3 text-amber-600" />
               {new Date(sesionActual.inicio).toLocaleString()}
             </span>
-            <span className="ml-auto text-emerald-400 font-semibold">
+            <span className="ml-auto text-emerald-700 font-semibold">
               ID: {sesionActual.id.slice(0, 12)}...
             </span>
           </div>
@@ -289,34 +289,34 @@ export const PaginaConsolaSupervision: React.FC = () => {
 
         {/* Índices Sintéticos (CU23) */}
         {indices && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200/90 text-xs">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+              <div className="w-9 h-9 rounded-xl bg-emerald-100/70 border border-emerald-200 flex items-center justify-center text-emerald-700">
                 <ShieldCheck className="w-4 h-4" />
               </div>
               <div>
                 <span className="text-[10px] text-slate-500 block uppercase font-mono">Índice de Integridad</span>
-                <span className="font-mono font-bold text-white text-base">{indices.indiceIntegridad} / 100</span>
+                <span className="font-mono font-bold text-slate-900 text-base">{indices.indiceIntegridad} / 100</span>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
+              <div className="w-9 h-9 rounded-xl bg-sky-100/70 border border-sky-200 flex items-center justify-center text-sky-700">
                 <Activity className="w-4 h-4" />
               </div>
               <div>
                 <span className="text-[10px] text-slate-500 block uppercase font-mono">Bienestar Ergonómico</span>
-                <span className="font-mono font-bold text-white text-base">{indices.indiceBienestar} / 100</span>
+                <span className="font-mono font-bold text-slate-900 text-base">{indices.indiceBienestar} / 100</span>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300">
-                <span className="font-mono font-bold text-sm text-amber-400">{indices.totalIncidentes}</span>
+              <div className="w-9 h-9 rounded-xl bg-amber-100/70 border border-amber-200 flex items-center justify-center text-amber-700">
+                <span className="font-mono font-bold text-sm text-amber-800">{indices.totalIncidentes}</span>
               </div>
               <div>
                 <span className="text-[10px] text-slate-500 block uppercase font-mono">Clasificación SST</span>
-                <span className="font-mono text-emerald-400 text-xs font-semibold">{indices.estadoSST}</span>
+                <span className="font-mono text-emerald-700 text-xs font-semibold">{indices.estadoSST}</span>
               </div>
             </div>
           </div>
@@ -324,9 +324,9 @@ export const PaginaConsolaSupervision: React.FC = () => {
 
         {/* Barra de Acciones de Reportes (CU24 y CU25) */}
         {sessionIdAuditoria.trim() && (
-          <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-slate-950/70 border border-slate-800">
+          <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
             <div className="text-xs">
-              <span className="font-semibold text-slate-300 block">Reportes y Certificación de Sesión</span>
+              <span className="font-semibold text-slate-800 block">Reportes y Certificación de Sesión</span>
               <span className="text-[10px] text-slate-500 font-mono">
                 Exportación oficial en Excel corporativo (CU24) y Dictamen Forense PDF con sello SHA-256 (CU25)
               </span>
@@ -336,7 +336,7 @@ export const PaginaConsolaSupervision: React.FC = () => {
               <button
                 onClick={descargarExcel}
                 disabled={descargandoExcel}
-                className="px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-medium transition-all flex items-center gap-1.5 disabled:opacity-50"
+                className="px-3 py-1.5 rounded-lg bg-white hover:bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-medium transition-all flex items-center gap-1.5 shadow-2xs disabled:opacity-50 cursor-pointer"
                 title="Descargar matriz ergonómica y métricas RULA en Excel"
               >
                 <FileSpreadsheet className={`w-3.5 h-3.5 ${descargandoExcel ? 'animate-spin' : ''}`} />
@@ -346,7 +346,7 @@ export const PaginaConsolaSupervision: React.FC = () => {
               <button
                 onClick={descargarPdf}
                 disabled={descargandoPdf}
-                className="px-3 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 text-xs font-medium transition-all flex items-center gap-1.5 disabled:opacity-50"
+                className="px-3 py-1.5 rounded-lg bg-white hover:bg-sky-50 text-sky-700 border border-sky-200 text-xs font-medium transition-all flex items-center gap-1.5 shadow-2xs disabled:opacity-50 cursor-pointer"
                 title="Descargar dictamen forense con sello criptográfico de integridad SHA-256"
               >
                 <FileText className={`w-3.5 h-3.5 ${descargandoPdf ? 'animate-spin' : ''}`} />
