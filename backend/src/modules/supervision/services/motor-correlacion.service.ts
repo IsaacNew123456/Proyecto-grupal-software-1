@@ -57,13 +57,14 @@ export class MotorCorrelacionService {
       // ── Regla 1: Sospecha de celular en regazo (Mirada hacia abajo repetida) ──
       const eventosCelular = ventanaEventos.filter((e) => e.tipo === 'GAZE_DOWN_SUSTAINED');
       if (eventosCelular.length >= 2) {
+        const eventoRef = eventosCelular[0];
         const yaExiste = await this.prisma.incident.findFirst({
           where: {
             sessionId,
             tipo: 'SOSPECHA_CELULAR_REGASO',
             timestamp: {
-              gte: new Date(inicioMs - 15000),
-              lte: new Date(finMs + 15000),
+              gte: new Date(eventoRef.timestamp.getTime() - duracionVentanaMs),
+              lte: new Date(eventoRef.timestamp.getTime() + duracionVentanaMs),
             },
           },
         });
@@ -85,7 +86,7 @@ export class MotorCorrelacionService {
               estado: 'PENDIENTE',
               resumen: `Desvío sostenido de mirada hacia el regazo detectado ${eventosCelular.length} veces en ventana de 60s.`,
               signals: signals as any,
-              timestamp: new Date(inicioMs),
+              timestamp: eventoRef.timestamp,
             },
           });
           incidentesGenerados.push(inc);
@@ -95,14 +96,15 @@ export class MotorCorrelacionService {
       // ── Regla 2: Fuga de foco crítica (Pérdida de ventana + mirada fuera de pantalla) ──
       const blurEvents = ventanaEventos.filter((e) => e.tipo === 'WINDOW_BLUR');
       const gazeOffEvents = ventanaEventos.filter((e) => e.tipo === 'GAZE_OFFSCREEN');
-      if (blurEvents.length >= 1 && (blurEvents.some((b) => (b.duracionMs || 0) > 4000) || gazeOffEvents.length >= 2)) {
+      if (blurEvents.length >= 1 && (blurEvents.some((b) => (b.duracionMs || 0) > 4000) || gazeOffEvents.length >= 1)) {
+        const eventoRef = blurEvents[0] || gazeOffEvents[0];
         const yaExiste = await this.prisma.incident.findFirst({
           where: {
             sessionId,
             tipo: 'FUGA_FOCO_CRITICA',
             timestamp: {
-              gte: new Date(inicioMs - 15000),
-              lte: new Date(finMs + 15000),
+              gte: new Date(eventoRef.timestamp.getTime() - duracionVentanaMs),
+              lte: new Date(eventoRef.timestamp.getTime() + duracionVentanaMs),
             },
           },
         });
@@ -124,7 +126,7 @@ export class MotorCorrelacionService {
               estado: 'PENDIENTE',
               resumen: 'Pérdida prolongada de foco de ventana combinada con desvío visual de pantalla.',
               signals: signals as any,
-              timestamp: new Date(inicioMs),
+              timestamp: eventoRef.timestamp,
             },
           });
           incidentesGenerados.push(inc);
@@ -134,13 +136,14 @@ export class MotorCorrelacionService {
       // ── Regla 3: Múltiples personas en escena (Suplantación o ayuda no autorizada) ──
       const multipleFaces = ventanaEventos.filter((e) => e.tipo === 'MULTIPLE_FACES');
       if (multipleFaces.length >= 1) {
+        const eventoRef = multipleFaces[0];
         const yaExiste = await this.prisma.incident.findFirst({
           where: {
             sessionId,
             tipo: 'MULTIPLES_PERSONAS',
             timestamp: {
-              gte: new Date(inicioMs - 15000),
-              lte: new Date(finMs + 15000),
+              gte: new Date(eventoRef.timestamp.getTime() - duracionVentanaMs),
+              lte: new Date(eventoRef.timestamp.getTime() + duracionVentanaMs),
             },
           },
         });
@@ -162,7 +165,7 @@ export class MotorCorrelacionService {
               estado: 'PENDIENTE',
               resumen: 'Detección de dos o más rostros simultáneos en el encuadre de la cámara.',
               signals: signals as any,
-              timestamp: new Date(inicioMs),
+              timestamp: eventoRef.timestamp,
             },
           });
           incidentesGenerados.push(inc);
@@ -172,13 +175,14 @@ export class MotorCorrelacionService {
       // ── Regla 4: Abandono de terminal de trabajo / evaluación ──
       const faceAbsent = ventanaEventos.filter((e) => e.tipo === 'FACE_ABSENT');
       if (faceAbsent.some((e) => (e.duracionMs || 0) >= 5000)) {
+        const eventoRef = faceAbsent[0];
         const yaExiste = await this.prisma.incident.findFirst({
           where: {
             sessionId,
             tipo: 'ABANDONO_TERMINAL',
             timestamp: {
-              gte: new Date(inicioMs - 15000),
-              lte: new Date(finMs + 15000),
+              gte: new Date(eventoRef.timestamp.getTime() - duracionVentanaMs),
+              lte: new Date(eventoRef.timestamp.getTime() + duracionVentanaMs),
             },
           },
         });
@@ -200,7 +204,7 @@ export class MotorCorrelacionService {
               estado: 'PENDIENTE',
               resumen: 'El evaluado abandonó el encuadre de la cámara por más de 5 segundos.',
               signals: signals as any,
-              timestamp: new Date(inicioMs),
+              timestamp: eventoRef.timestamp,
             },
           });
           incidentesGenerados.push(inc);
@@ -210,13 +214,14 @@ export class MotorCorrelacionService {
       // ── Regla 5: Intento de copiado o atajos bloqueados ──
       const shortcuts = ventanaEventos.filter((e) => e.tipo === 'SHORTCUT_BLOCKED');
       if (shortcuts.length >= 2) {
+        const eventoRef = shortcuts[0];
         const yaExiste = await this.prisma.incident.findFirst({
           where: {
             sessionId,
             tipo: 'ATAJOS_BLOQUEADOS_REPETIDOS',
             timestamp: {
-              gte: new Date(inicioMs - 15000),
-              lte: new Date(finMs + 15000),
+              gte: new Date(eventoRef.timestamp.getTime() - duracionVentanaMs),
+              lte: new Date(eventoRef.timestamp.getTime() + duracionVentanaMs),
             },
           },
         });
@@ -238,7 +243,7 @@ export class MotorCorrelacionService {
               estado: 'PENDIENTE',
               resumen: `Intento de uso de atajos no permitidos detectado ${shortcuts.length} veces en 60 segundos.`,
               signals: signals as any,
-              timestamp: new Date(inicioMs),
+              timestamp: eventoRef.timestamp,
             },
           });
           incidentesGenerados.push(inc);
@@ -250,13 +255,14 @@ export class MotorCorrelacionService {
         (e) => e.tipo === 'POSTURA_FORZADA' || (e.detalles && (e.detalles as any).rulaScore >= 5),
       );
       if (eventosPosturaForzada.length >= 2) {
+        const eventoRef = eventosPosturaForzada[0];
         const yaExiste = await this.prisma.incident.findFirst({
           where: {
             sessionId,
             tipo: 'RIESGO_POSTURAL_RULA_CRITICO',
             timestamp: {
-              gte: new Date(inicioMs - 15000),
-              lte: new Date(finMs + 15000),
+              gte: new Date(eventoRef.timestamp.getTime() - duracionVentanaMs),
+              lte: new Date(eventoRef.timestamp.getTime() + duracionVentanaMs),
             },
           },
         });
@@ -278,7 +284,7 @@ export class MotorCorrelacionService {
               estado: 'PENDIENTE',
               resumen: 'Inclinación forzada de columna o cuello con nivel RULA crítico durante más de 60s.',
               signals: signals as any,
-              timestamp: new Date(inicioMs),
+              timestamp: eventoRef.timestamp,
             },
           });
           incidentesGenerados.push(inc);
