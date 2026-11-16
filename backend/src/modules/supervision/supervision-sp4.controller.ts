@@ -39,6 +39,76 @@ export class SupervisionSp4Controller {
     private readonly reportes: GeneradorReportesService,
   ) {}
 
+  @Get('sesiones')
+  @ApiOperation({ summary: 'CU20/CU21 – Listar sesiones de supervisión de la organización' })
+  async listarSesiones(@CurrentUser() user: AuthenticatedUser) {
+    return this.prisma.supervisionSession.findMany({
+      where: {
+        organizationId: user.organizationId,
+      },
+      orderBy: { inicio: 'desc' },
+      take: 20,
+      include: {
+        usuario: { select: { id: true, nombre: true, apellido: true, correo: true } },
+        _count: { select: { eventosConducta: true, incidentes: true } },
+      },
+    });
+  }
+
+  @Post('sesiones/demo')
+  @ApiOperation({ summary: 'CU20 – Crear sesión demo con eventos para demostración' })
+  async crearSesionDemo(@CurrentUser() user: AuthenticatedUser) {
+    const ahora = new Date();
+    const sesion = await this.prisma.supervisionSession.create({
+      data: {
+        userId: user.id,
+        organizationId: user.organizationId,
+        tipo: 'EXAMEN',
+        estado: 'COMPLETADA',
+        inicio: new Date(ahora.getTime() - 25 * 60000),
+        fin: ahora,
+        scoreIntegridad: 85.0,
+      },
+    });
+
+    const eventosDemo = [
+      { tipo: 'GAZE_DOWN_SUSTAINED', severidad: 'MEDIUM', duracionMs: 4200, detalles: { pitch: -34, yaw: 2, rulaScore: 4 }, offsetMin: 22 },
+      { tipo: 'GAZE_DOWN_SUSTAINED', severidad: 'HIGH', duracionMs: 5100, detalles: { pitch: -38, yaw: 1, rulaScore: 4 }, offsetMin: 21 },
+      { tipo: 'WINDOW_BLUR', severidad: 'MEDIUM', duracionMs: 6200, detalles: { windowTitle: 'Navegador externo' }, offsetMin: 18 },
+      { tipo: 'GAZE_OFFSCREEN', severidad: 'MEDIUM', duracionMs: 3800, detalles: { direccion: 'RIGHT_UP' }, offsetMin: 18 },
+      { tipo: 'MULTIPLE_FACES', severidad: 'CRITICAL', duracionMs: 4500, detalles: { totalRostros: 2 }, offsetMin: 14 },
+      { tipo: 'SHORTCUT_BLOCKED', severidad: 'MEDIUM', duracionMs: 200, detalles: { tecla: 'Ctrl+C' }, offsetMin: 10 },
+      { tipo: 'SHORTCUT_BLOCKED', severidad: 'HIGH', duracionMs: 200, detalles: { tecla: 'Ctrl+V' }, offsetMin: 10 },
+      { tipo: 'POSTURA_FORZADA', severidad: 'MEDIUM', duracionMs: 8000, detalles: { rulaScore: 5, cuelloAngulo: 24, troncoAngulo: 18 }, offsetMin: 6 },
+      { tipo: 'POSTURA_FORZADA', severidad: 'HIGH', duracionMs: 12000, detalles: { rulaScore: 6, cuelloAngulo: 28, troncoAngulo: 20 }, offsetMin: 5 },
+      { tipo: 'FACE_ABSENT', severidad: 'HIGH', duracionMs: 7500, detalles: { motivo: 'Ausencia total de encuadre' }, offsetMin: 2 },
+    ];
+
+    for (const ev of eventosDemo) {
+      await this.prisma.behaviorEvent.create({
+        data: {
+          sessionId: sesion.id,
+          userId: user.id,
+          tipo: ev.tipo,
+          severidad: ev.severidad,
+          duracionMs: ev.duracionMs,
+          detalles: ev.detalles,
+          timestamp: new Date(ahora.getTime() - ev.offsetMin * 60000),
+        },
+      });
+    }
+
+    const incidentes = await this.correlacion.evaluarVentanaDeslizante(sesion.id);
+
+    return {
+      mensaje: 'Sesión demo creada y correlacionada exitosamente con el motor CU20',
+      sessionId: sesion.id,
+      totalEventosInyectados: eventosDemo.length,
+      totalIncidentesGenerados: incidentes.length,
+      incidentes,
+    };
+  }
+
   @Post('correlacion/:sessionId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'CU20 – Ejecutar motor de correlación de ventana deslizante' })

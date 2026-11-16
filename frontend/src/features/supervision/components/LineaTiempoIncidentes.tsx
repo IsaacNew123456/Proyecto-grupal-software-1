@@ -1,6 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { AlertCircle, CheckCircle2, XCircle, ShieldAlert, Clock, RefreshCw } from 'lucide-react';
+import {
+  AlertCircle,
+  CheckCircle2,
+  XCircle,
+  ShieldAlert,
+  Clock,
+  RefreshCw,
+  ChevronDown,
+  ChevronUp,
+  Cpu,
+  Info,
+} from 'lucide-react';
 import { api } from '../../../api/client';
+
+export interface SignalExplicativa {
+  tipo: string;
+  criterio?: string;
+  valor?: any;
+  timestamp: string;
+  confianza?: number;
+  recomendacionForense?: string;
+}
 
 export interface Incidente {
   id: string;
@@ -9,7 +29,7 @@ export interface Incidente {
   severidad: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   estado: 'PENDIENTE' | 'CONFIRMADO' | 'DESESTIMADO' | 'FALSO_POSITIVO';
   resumen: string;
-  signals?: any[];
+  signals?: SignalExplicativa[];
   timestamp: string;
   justificacion?: string;
 }
@@ -29,6 +49,7 @@ export const LineaTiempoIncidentes: React.FC<Props> = ({ sessionId }) => {
   const [incidentes, setIncidentes] = useState<Incidente[]>([]);
   const [cargando, setCargando] = useState(false);
   const [auditandoId, setAuditandoId] = useState<string | null>(null);
+  const [expandidoId, setExpandidoId] = useState<string | null>(null);
 
   const cargarIncidentes = async () => {
     if (!sessionId) return;
@@ -52,11 +73,11 @@ export const LineaTiempoIncidentes: React.FC<Props> = ({ sessionId }) => {
     try {
       await api.put(`/supervision/incidentes/${incidenteId}/auditar`, {
         estado,
-        justificacion: `Auditado por el supervisor de turno (${estado})`,
+        justificacion: `Auditado por el supervisor (${estado}) en tiempo real`,
       });
       await cargarIncidentes();
     } catch {
-      // Ignorar o registrar error
+      // Manejo silencioso
     } finally {
       setAuditandoId(null);
     }
@@ -66,8 +87,8 @@ export const LineaTiempoIncidentes: React.FC<Props> = ({ sessionId }) => {
     <div className="space-y-3">
       <div className="flex items-center justify-between pb-2 border-b border-slate-800">
         <div className="flex items-center gap-2">
-          <ShieldAlert className="w-4 h-4 text-lime-400" />
-          <h4 className="text-xs font-semibold text-slate-200">Incidentes Correlacionados</h4>
+          <ShieldAlert className="w-4 h-4 text-emerald-400" />
+          <h4 className="text-xs font-semibold text-slate-200">Incidentes Correlacionados por Reglas (CU20)</h4>
           <span className="text-[10px] font-mono text-slate-500">({incidentes.length})</span>
         </div>
         <button
@@ -81,17 +102,20 @@ export const LineaTiempoIncidentes: React.FC<Props> = ({ sessionId }) => {
       </div>
 
       {incidentes.length === 0 ? (
-        <div className="p-6 text-center text-slate-500 text-xs font-mono">
-          Cero anomalías o incidentes reportados en esta sesión
+        <div className="p-8 text-center text-slate-500 text-xs font-mono bg-slate-950/40 rounded-xl border border-slate-800/60">
+          Cero anomalías o incidentes reportados en esta sesión. Presione &quot;Ejecutar Motor&quot; para correlacionar eventos.
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {incidentes.map((inc) => {
             const sev = SEVERIDAD_CONFIG[inc.severidad] || SEVERIDAD_CONFIG.LOW;
+            const tieneSignals = inc.signals && inc.signals.length > 0;
+            const estaExpandido = expandidoId === inc.id;
+
             return (
               <div
                 key={inc.id}
-                className="p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-700 transition-all text-xs"
+                className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-700 transition-all text-xs space-y-2"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
@@ -105,7 +129,7 @@ export const LineaTiempoIncidentes: React.FC<Props> = ({ sessionId }) => {
                         {new Date(inc.timestamp).toLocaleTimeString()}
                       </span>
                     </div>
-                    <p className="text-slate-400 text-[11px] leading-relaxed">{inc.resumen}</p>
+                    <p className="text-slate-300 text-[11px] leading-relaxed">{inc.resumen}</p>
                   </div>
 
                   <span
@@ -123,8 +147,53 @@ export const LineaTiempoIncidentes: React.FC<Props> = ({ sessionId }) => {
                   </span>
                 </div>
 
+                {/* Botón para expandir señales explicativas */}
+                {tieneSignals && (
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => setExpandidoId(estaExpandido ? null : inc.id)}
+                      className="inline-flex items-center gap-1 text-[10px] font-mono text-emerald-400 hover:text-emerald-300 transition-colors pt-1"
+                    >
+                      <Cpu className="w-3 h-3" />
+                      <span>{estaExpandido ? 'Ocultar Señales Explicativas' : `Ver Señales Explicativas (${inc.signals?.length} signals)`}</span>
+                      {estaExpandido ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                    </button>
+
+                    {estaExpandido && (
+                      <div className="mt-2 p-3 rounded-lg bg-slate-950/80 border border-slate-800 text-[11px] font-mono space-y-2">
+                        {inc.signals?.map((sig, sIdx) => (
+                          <div key={sIdx} className="space-y-1 pb-2 border-b border-slate-800/60 last:border-0 last:pb-0">
+                            <div className="flex items-center justify-between text-slate-400">
+                              <span className="text-emerald-400 font-semibold">{sig.tipo}</span>
+                              {sig.confianza && (
+                                <span className="text-[10px] bg-emerald-500/10 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                                  {sig.confianza}% confianza
+                                </span>
+                              )}
+                            </div>
+                            {sig.criterio && <p className="text-slate-300 text-[10px]">{sig.criterio}</p>}
+                            {sig.recomendacionForense && (
+                              <p className="text-amber-400/90 text-[10px] flex items-start gap-1">
+                                <Info className="w-3 h-3 shrink-0 mt-0.5" />
+                                <span>{sig.recomendacionForense}</span>
+                              </p>
+                            )}
+                            {sig.valor && (
+                              <pre className="p-1.5 rounded bg-black/60 text-[9px] text-sky-300 overflow-x-auto">
+                                {JSON.stringify(sig.valor, null, 2)}
+                              </pre>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Acciones de auditoría rápida */}
                 {inc.estado === 'PENDIENTE' && (
-                  <div className="mt-3 pt-2.5 border-t border-slate-800/60 flex items-center justify-end gap-2">
+                  <div className="mt-2 pt-2 border-t border-slate-800/60 flex items-center justify-end gap-2">
                     <button
                       onClick={() => auditar(inc.id, 'FALSO_POSITIVO')}
                       disabled={auditandoId === inc.id}

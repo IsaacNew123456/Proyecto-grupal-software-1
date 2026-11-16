@@ -3,8 +3,11 @@ import { PrismaService } from '../../../prisma/prisma.service';
 
 export interface SignalExplicativa {
   tipo: string;
+  criterio: string;
   valor: any;
   timestamp: string;
+  confianza: number;
+  recomendacionForense: string;
 }
 
 @Injectable()
@@ -12,128 +15,288 @@ export class MotorCorrelacionService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * CU20: Evalúa la ventana deslizante de 60 segundos y correlaciona incidentes
+   * CU20: Evalúa ventanas deslizantes de 60 segundos cruzando postura, mirada y telemetría.
+   * Si la sesión tiene eventos históricos, analiza toda la línea temporal en ventanas de 60s.
+   * Si se ejecuta en vivo, analiza los últimos 60 segundos desde el momento actual.
    */
   async evaluarVentanaDeslizante(sessionId: string): Promise<any[]> {
-    const ahora = new Date();
-    const haceUnMinuto = new Date(ahora.getTime() - 60000);
-
-    const eventos = await this.prisma.behaviorEvent.findMany({
-      where: {
-        sessionId,
-        timestamp: { gte: haceUnMinuto },
-      },
+    // 1. Obtener todos los eventos de conducta de la sesión ordenados temporalmente
+    const todosEventos = await this.prisma.behaviorEvent.findMany({
+      where: { sessionId },
       orderBy: { timestamp: 'asc' },
     });
 
-    if (eventos.length === 0) return [];
+    if (todosEventos.length === 0) return [];
 
     const incidentesGenerados: any[] = [];
+    const minTime = todosEventos[0].timestamp.getTime();
+    const maxTime = todosEventos[todosEventos.length - 1].timestamp.getTime();
 
-    // 1. Regla: Sospecha de celular en regazo
-    const eventosCelular = eventos.filter((e) => e.tipo === 'GAZE_DOWN_SUSTAINED');
-    if (eventosCelular.length >= 2) {
-      const yaExiste = await this.prisma.incident.findFirst({
-        where: { sessionId, tipo: 'SOSPECHA_CELULAR_REGASO', timestamp: { gte: haceUnMinuto } },
-      });
-      if (!yaExiste) {
-        const signals: SignalExplicativa[] = eventosCelular.map((e) => ({
-          tipo: e.tipo,
-          valor: e.detalles,
-          timestamp: e.timestamp.toISOString(),
-        }));
-        const inc = await this.prisma.incident.create({
-          data: {
+    // Deslizar ventana de 60 segundos con paso de 30 segundos
+    const duracionVentanaMs = 60000;
+    const pasoMs = 30000;
+
+    // Si la sesión abarca menos de 60s, evaluamos el intervalo completo
+    const puntosInicio: number[] = [];
+    if (maxTime - minTime <= duracionVentanaMs) {
+      puntosInicio.push(minTime);
+    } else {
+      for (let t = minTime; t <= maxTime; t += pasoMs) {
+        puntosInicio.push(t);
+      }
+    }
+
+    for (const inicioMs of puntosInicio) {
+      const finMs = inicioMs + duracionVentanaMs;
+      const ventanaEventos = todosEventos.filter(
+        (e) => e.timestamp.getTime() >= inicioMs && e.timestamp.getTime() <= finMs,
+      );
+
+      if (ventanaEventos.length === 0) continue;
+
+      // ── Regla 1: Sospecha de celular en regazo (Mirada hacia abajo repetida) ──
+      const eventosCelular = ventanaEventos.filter((e) => e.tipo === 'GAZE_DOWN_SUSTAINED');
+      if (eventosCelular.length >= 2) {
+        const yaExiste = await this.prisma.incident.findFirst({
+          where: {
             sessionId,
             tipo: 'SOSPECHA_CELULAR_REGASO',
-            severidad: 'HIGH',
-            estado: 'PENDIENTE',
-            resumen: `Desvío sostenido de mirada hacia el regazo repetido ${eventosCelular.length} veces en 60 segundos.`,
-            signals: signals as any,
+            timestamp: {
+              gte: new Date(inicioMs - 15000),
+              lte: new Date(finMs + 15000),
+            },
           },
         });
-        incidentesGenerados.push(inc);
-      }
-    }
+        if (!yaExiste) {
+          const signals: SignalExplicativa[] = eventosCelular.map((e) => ({
+            tipo: e.tipo,
+            criterio: `Desvío sostenido de mirada hacia el regazo (pitch negativo pronunciado)`,
+            valor: e.detalles,
+            timestamp: e.timestamp.toISOString(),
+            confianza: 92,
+            recomendacionForense: 'Verificar si el postulante mantiene un teléfono móvil o notas físicas sobre las piernas.',
+          }));
 
-    // 2. Regla: Fuga de foco crítica
-    const blurEvents = eventos.filter((e) => e.tipo === 'WINDOW_BLUR');
-    const gazeOffEvents = eventos.filter((e) => e.tipo === 'GAZE_OFFSCREEN');
-    if (blurEvents.length >= 1 && (blurEvents.some((b) => (b.duracionMs || 0) > 5000) || gazeOffEvents.length >= 2)) {
-      const yaExiste = await this.prisma.incident.findFirst({
-        where: { sessionId, tipo: 'FUGA_FOCO_CRITICA', timestamp: { gte: haceUnMinuto } },
-      });
-      if (!yaExiste) {
-        const signals: SignalExplicativa[] = [...blurEvents, ...gazeOffEvents].map((e) => ({
-          tipo: e.tipo,
-          valor: { duracionMs: e.duracionMs, detalles: e.detalles },
-          timestamp: e.timestamp.toISOString(),
-        }));
-        const inc = await this.prisma.incident.create({
-          data: {
+          const inc = await this.prisma.incident.create({
+            data: {
+              sessionId,
+              tipo: 'SOSPECHA_CELULAR_REGASO',
+              severidad: 'HIGH',
+              estado: 'PENDIENTE',
+              resumen: `Desvío sostenido de mirada hacia el regazo detectado ${eventosCelular.length} veces en ventana de 60s.`,
+              signals: signals as any,
+              timestamp: new Date(inicioMs),
+            },
+          });
+          incidentesGenerados.push(inc);
+        }
+      }
+
+      // ── Regla 2: Fuga de foco crítica (Pérdida de ventana + mirada fuera de pantalla) ──
+      const blurEvents = ventanaEventos.filter((e) => e.tipo === 'WINDOW_BLUR');
+      const gazeOffEvents = ventanaEventos.filter((e) => e.tipo === 'GAZE_OFFSCREEN');
+      if (blurEvents.length >= 1 && (blurEvents.some((b) => (b.duracionMs || 0) > 4000) || gazeOffEvents.length >= 2)) {
+        const yaExiste = await this.prisma.incident.findFirst({
+          where: {
             sessionId,
             tipo: 'FUGA_FOCO_CRITICA',
-            severidad: 'HIGH',
-            estado: 'PENDIENTE',
-            resumen: 'Pérdida prolongada de foco de ventana combinada con desvío visual de pantalla.',
-            signals: signals as any,
+            timestamp: {
+              gte: new Date(inicioMs - 15000),
+              lte: new Date(finMs + 15000),
+            },
           },
         });
-        incidentesGenerados.push(inc);
-      }
-    }
+        if (!yaExiste) {
+          const signals: SignalExplicativa[] = [...blurEvents, ...gazeOffEvents].map((e) => ({
+            tipo: e.tipo,
+            criterio: 'Pérdida de foco activo de ventana combinada con desvío ocular fuera del monitor',
+            valor: { duracionMs: e.duracionMs, detalles: e.detalles },
+            timestamp: e.timestamp.toISOString(),
+            confianza: 96,
+            recomendacionForense: 'Revisar interacción con navegadores externos, software de mensajería o pantallas secundarias.',
+          }));
 
-    // 3. Regla: Múltiples personas en escena
-    const multipleFaces = eventos.filter((e) => e.tipo === 'MULTIPLE_FACES');
-    if (multipleFaces.length >= 1) {
-      const yaExiste = await this.prisma.incident.findFirst({
-        where: { sessionId, tipo: 'MULTIPLES_PERSONAS', timestamp: { gte: haceUnMinuto } },
-      });
-      if (!yaExiste) {
-        const inc = await this.prisma.incident.create({
-          data: {
+          const inc = await this.prisma.incident.create({
+            data: {
+              sessionId,
+              tipo: 'FUGA_FOCO_CRITICA',
+              severidad: 'HIGH',
+              estado: 'PENDIENTE',
+              resumen: 'Pérdida prolongada de foco de ventana combinada con desvío visual de pantalla.',
+              signals: signals as any,
+              timestamp: new Date(inicioMs),
+            },
+          });
+          incidentesGenerados.push(inc);
+        }
+      }
+
+      // ── Regla 3: Múltiples personas en escena (Suplantación o ayuda no autorizada) ──
+      const multipleFaces = ventanaEventos.filter((e) => e.tipo === 'MULTIPLE_FACES');
+      if (multipleFaces.length >= 1) {
+        const yaExiste = await this.prisma.incident.findFirst({
+          where: {
             sessionId,
             tipo: 'MULTIPLES_PERSONAS',
-            severidad: 'CRITICAL',
-            estado: 'PENDIENTE',
-            resumen: 'Detección de dos o más rostros simultáneos en el encuadre de la cámara.',
-            signals: multipleFaces.map((e) => ({
-              tipo: e.tipo,
-              valor: e.duracionMs,
-              timestamp: e.timestamp.toISOString(),
-            })) as any,
+            timestamp: {
+              gte: new Date(inicioMs - 15000),
+              lte: new Date(finMs + 15000),
+            },
           },
         });
-        incidentesGenerados.push(inc);
-      }
-    }
+        if (!yaExiste) {
+          const signals: SignalExplicativa[] = multipleFaces.map((e) => ({
+            tipo: e.tipo,
+            criterio: 'Reconocimiento biométrico de dos o más rostros simultáneos en el cuadro de visión',
+            valor: e.detalles || { duracionMs: e.duracionMs },
+            timestamp: e.timestamp.toISOString(),
+            confianza: 99,
+            recomendacionForense: 'Incidente de máxima severidad. Posible tercero dictando respuestas o presenciando la prueba.',
+          }));
 
-    // 4. Regla: Abandono de terminal
-    const faceAbsent = eventos.filter((e) => e.tipo === 'FACE_ABSENT');
-    if (faceAbsent.some((e) => (e.duracionMs || 0) >= 5000)) {
-      const yaExiste = await this.prisma.incident.findFirst({
-        where: { sessionId, tipo: 'ABANDONO_TERMINAL', timestamp: { gte: haceUnMinuto } },
-      });
-      if (!yaExiste) {
-        const inc = await this.prisma.incident.create({
-          data: {
+          const inc = await this.prisma.incident.create({
+            data: {
+              sessionId,
+              tipo: 'MULTIPLES_PERSONAS',
+              severidad: 'CRITICAL',
+              estado: 'PENDIENTE',
+              resumen: 'Detección de dos o más rostros simultáneos en el encuadre de la cámara.',
+              signals: signals as any,
+              timestamp: new Date(inicioMs),
+            },
+          });
+          incidentesGenerados.push(inc);
+        }
+      }
+
+      // ── Regla 4: Abandono de terminal de trabajo / evaluación ──
+      const faceAbsent = ventanaEventos.filter((e) => e.tipo === 'FACE_ABSENT');
+      if (faceAbsent.some((e) => (e.duracionMs || 0) >= 5000)) {
+        const yaExiste = await this.prisma.incident.findFirst({
+          where: {
             sessionId,
             tipo: 'ABANDONO_TERMINAL',
-            severidad: 'HIGH',
-            estado: 'PENDIENTE',
-            resumen: 'El evaluado abandonó el encuadre de la cámara por más de 5 segundos.',
-            signals: faceAbsent.map((e) => ({
-              tipo: e.tipo,
-              valor: e.duracionMs,
-              timestamp: e.timestamp.toISOString(),
-            })) as any,
+            timestamp: {
+              gte: new Date(inicioMs - 15000),
+              lte: new Date(finMs + 15000),
+            },
           },
         });
-        incidentesGenerados.push(inc);
+        if (!yaExiste) {
+          const signals: SignalExplicativa[] = faceAbsent.map((e) => ({
+            tipo: e.tipo,
+            criterio: 'Ausencia total de puntos de referencia faciales (Face Mesh) durante más de 5 segundos',
+            valor: { duracionMs: e.duracionMs },
+            timestamp: e.timestamp.toISOString(),
+            confianza: 95,
+            recomendacionForense: 'El postulante o colaborador abandonó el puesto sin previa pausa activa autorizada.',
+          }));
+
+          const inc = await this.prisma.incident.create({
+            data: {
+              sessionId,
+              tipo: 'ABANDONO_TERMINAL',
+              severidad: 'HIGH',
+              estado: 'PENDIENTE',
+              resumen: 'El evaluado abandonó el encuadre de la cámara por más de 5 segundos.',
+              signals: signals as any,
+              timestamp: new Date(inicioMs),
+            },
+          });
+          incidentesGenerados.push(inc);
+        }
+      }
+
+      // ── Regla 5: Intento de copiado o atajos bloqueados ──
+      const shortcuts = ventanaEventos.filter((e) => e.tipo === 'SHORTCUT_BLOCKED');
+      if (shortcuts.length >= 2) {
+        const yaExiste = await this.prisma.incident.findFirst({
+          where: {
+            sessionId,
+            tipo: 'ATAJOS_BLOQUEADOS_REPETIDOS',
+            timestamp: {
+              gte: new Date(inicioMs - 15000),
+              lte: new Date(finMs + 15000),
+            },
+          },
+        });
+        if (!yaExiste) {
+          const signals: SignalExplicativa[] = shortcuts.map((e) => ({
+            tipo: e.tipo,
+            criterio: 'Intento repetido de utilizar atajos restringidos del sistema operativo (Ctrl+C, Ctrl+V, Alt+Tab)',
+            valor: e.detalles,
+            timestamp: e.timestamp.toISOString(),
+            confianza: 90,
+            recomendacionForense: 'Comprobar si se intentó extraer o pegar contenido externo en el área de examen.',
+          }));
+
+          const inc = await this.prisma.incident.create({
+            data: {
+              sessionId,
+              tipo: 'ATAJOS_BLOQUEADOS_REPETIDOS',
+              severidad: 'HIGH',
+              estado: 'PENDIENTE',
+              resumen: `Intento de uso de atajos no permitidos detectado ${shortcuts.length} veces en 60 segundos.`,
+              signals: signals as any,
+              timestamp: new Date(inicioMs),
+            },
+          });
+          incidentesGenerados.push(inc);
+        }
+      }
+
+      // ── Regla 6: Riesgo Ergonómico y Fatiga Postural Severa (Cruce Multidimensional) ──
+      const eventosPosturaForzada = ventanaEventos.filter(
+        (e) => e.tipo === 'POSTURA_FORZADA' || (e.detalles && (e.detalles as any).rulaScore >= 5),
+      );
+      if (eventosPosturaForzada.length >= 2) {
+        const yaExiste = await this.prisma.incident.findFirst({
+          where: {
+            sessionId,
+            tipo: 'RIESGO_POSTURAL_RULA_CRITICO',
+            timestamp: {
+              gte: new Date(inicioMs - 15000),
+              lte: new Date(finMs + 15000),
+            },
+          },
+        });
+        if (!yaExiste) {
+          const signals: SignalExplicativa[] = eventosPosturaForzada.map((e) => ({
+            tipo: e.tipo,
+            criterio: 'Puntuación biomecánica ISO 11226 / RULA >= 5 sostenida en ventana temporal',
+            valor: e.detalles,
+            timestamp: e.timestamp.toISOString(),
+            confianza: 88,
+            recomendacionForense: 'Postura con alto riesgo de lesión musculoesquelética. Requiere pausa activa obligatoria.',
+          }));
+
+          const inc = await this.prisma.incident.create({
+            data: {
+              sessionId,
+              tipo: 'RIESGO_POSTURAL_RULA_CRITICO',
+              severidad: 'MEDIUM',
+              estado: 'PENDIENTE',
+              resumen: 'Inclinación forzada de columna o cuello con nivel RULA crítico durante más de 60s.',
+              signals: signals as any,
+              timestamp: new Date(inicioMs),
+            },
+          });
+          incidentesGenerados.push(inc);
+        }
       }
     }
 
-    return incidentesGenerados;
+    // Actualizar el conteo de incidentes en la sesión
+    const totalInc = await this.prisma.incident.count({ where: { sessionId } });
+    await this.prisma.supervisionSession.update({
+      where: { id: sessionId },
+      data: { totalIncidentes: totalInc },
+    });
+
+    return this.prisma.incident.findMany({
+      where: { sessionId },
+      orderBy: { timestamp: 'desc' },
+    });
   }
 
   async obtenerIncidentes(sessionId: string): Promise<any[]> {
