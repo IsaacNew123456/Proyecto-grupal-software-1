@@ -70,7 +70,7 @@ export const ModalAuditarIncidente: React.FC<Props> = ({
             <div>
               <h3 className="text-sm font-bold text-slate-900">Auditar Incidente</h3>
               <p className="text-[11px] text-slate-500 font-mono">
-                Dictamen pericial con registro inmutable WORM
+                Registro formal de auditoría y dictamen de seguridad
               </p>
             </div>
           </div>
@@ -96,7 +96,7 @@ export const ModalAuditarIncidente: React.FC<Props> = ({
           {incidente.signals && incidente.signals.length > 0 && (
             <div className="pt-2 border-t border-slate-200 flex items-center gap-2 text-[10px] font-mono text-slate-500">
               <Cpu className="w-3 h-3 text-sky-600" />
-              <span>{incidente.signals.length} señal(es) explicativas generadas por el motor de correlación</span>
+              <span>{incidente.signals.length} señal(es) de comportamiento detectadas</span>
             </div>
           )}
         </div>
@@ -156,7 +156,7 @@ export const ModalAuditarIncidente: React.FC<Props> = ({
             value={justificacion}
             onChange={(e) => setJustificacion(e.target.value)}
             rows={3}
-            placeholder="Ingrese el motivo forense del dictamen (ej. Reflejo de luz en lentes, uso confirmado de smartphone)..."
+            placeholder="Ingrese las observaciones o justificación técnica del dictamen..."
             className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white font-mono resize-none"
           />
           {error && <p className="text-[10px] text-rose-600 font-mono">{error}</p>}
@@ -178,7 +178,7 @@ export const ModalAuditarIncidente: React.FC<Props> = ({
             disabled={guardando}
             className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-semibold text-xs hover:bg-emerald-700 transition-all flex items-center gap-1.5 shadow-2xs disabled:opacity-50 cursor-pointer"
           >
-            <span>{guardando ? 'Firmando Dictamen...' : 'Registrar Dictamen'}</span>
+            <span>{guardando ? 'Guardando Dictamen...' : 'Registrar Dictamen'}</span>
           </button>
         </div>
       </div>

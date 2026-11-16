@@ -185,7 +185,7 @@ export const PaginaConsolaSupervision: React.FC = () => {
             <span>Consola de Supervisión en Tiempo Real</span>
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            Mosaico semáforo SST y Motor de Correlación de reglas sobre ventanas deslizantes de 60s
+            Supervisión ergonómica continua y detección de anomalías en tiempo real
           </p>
         </div>
 

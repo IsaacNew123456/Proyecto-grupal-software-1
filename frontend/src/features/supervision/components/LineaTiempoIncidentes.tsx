@@ -158,7 +158,7 @@ export const LineaTiempoIncidentes: React.FC<Props> = ({ sessionId, onIncidenteA
                       type="button"
                       onClick={() => setIncidenteModal(inc)}
                       className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 border border-slate-200 transition-colors cursor-pointer"
-                      title="Abrir modal para dictamen forense personalizado"
+                      title="Auditar y agregar nota técnica"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
                     </button>
@@ -169,7 +169,7 @@ export const LineaTiempoIncidentes: React.FC<Props> = ({ sessionId, onIncidenteA
                 {inc.justificacion && (
                   <div className="p-2.5 rounded-xl bg-white border border-slate-200 text-[10px] font-mono text-slate-700 flex items-start gap-1.5 shadow-2xs">
                     <FileText className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
-                    <span><strong>Nota Forense:</strong> {inc.justificacion}</span>
+                    <span><strong>Dictamen de Auditoría:</strong> {inc.justificacion}</span>
                   </div>
                 )}
 
@@ -182,7 +182,7 @@ export const LineaTiempoIncidentes: React.FC<Props> = ({ sessionId, onIncidenteA
                       className="inline-flex items-center gap-1 text-[10px] font-mono text-emerald-700 hover:text-emerald-800 font-semibold transition-colors pt-1 cursor-pointer"
                     >
                       <Cpu className="w-3 h-3" />
-                      <span>{estaExpandido ? 'Ocultar Señales Explicativas' : `Ver Señales Explicativas (${inc.signals?.length} signals)`}</span>
+                      <span>{estaExpandido ? 'Ocultar Señales de Comportamiento' : `Ver Señales de Comportamiento (${inc.signals?.length})`}</span>
                       {estaExpandido ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                     </button>
 

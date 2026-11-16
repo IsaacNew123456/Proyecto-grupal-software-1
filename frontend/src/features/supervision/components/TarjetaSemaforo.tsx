@@ -56,7 +56,7 @@ export const TarjetaSemaforo: React.FC<Props> = ({ puesto, onSeleccionar, selecc
       className={`relative rounded-2xl bg-white border ${cfg.cardBorder} p-3.5 transition-all duration-200 flex flex-col justify-between cursor-pointer shadow-2xs hover:shadow-md ${
         seleccionado ? 'ring-2 ring-emerald-500 border-emerald-500 shadow-sm' : ''
       }`}
-      title="Haga clic para auditar esta sesión en la línea de tiempo inferior"
+      title="Haga clic para auditar esta sesión"
     >
       <div>
         <div className="flex items-start justify-between gap-2 mb-2.5">
@@ -110,7 +110,7 @@ export const TarjetaSemaforo: React.FC<Props> = ({ puesto, onSeleccionar, selecc
         <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[9px] font-mono text-slate-400">
           <span className="flex items-center gap-1">
             <Activity className="w-2.5 h-2.5 text-slate-400" />
-            <span>{puesto.estado === 'GRIS' ? 'Watchdog > 15s' : 'Telemetría activa'}</span>
+            <span>{puesto.estado === 'GRIS' ? 'Inactivo (> 15s)' : 'Telemetría activa'}</span>
           </span>
           <span className="text-emerald-700 font-semibold hover:text-emerald-800 transition-colors">Auditar →</span>
         </div>

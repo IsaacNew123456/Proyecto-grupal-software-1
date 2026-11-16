@@ -58,7 +58,7 @@ export const ModalDetalleBitacora: React.FC<ModalDetalleBitacoraProps> = ({ regi
             </div>
             <div>
               <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <span>Detalle de Registro WORM</span>
+                <span>Detalle de Registro de Auditoría</span>
                 <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${getBadgeStyle(registro.categoria)}`}>
                   {registro.categoria}
                 </span>
@@ -143,7 +143,7 @@ export const ModalDetalleBitacora: React.FC<ModalDetalleBitacoraProps> = ({ regi
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-xs font-bold text-slate-500 flex items-center gap-1.5">
                   <Hash className="w-3.5 h-3.5 text-slate-400" />
-                  Hash del Bloque Previo (Encadenamiento WORM)
+                  Hash del Bloque Previo (Cadena Criptográfica)
                 </span>
                 <button
                   type="button"
@@ -163,7 +163,7 @@ export const ModalDetalleBitacora: React.FC<ModalDetalleBitacoraProps> = ({ regi
           {/* Payload JSON / Detalles técnicos */}
           {registro.details && (
             <div className="space-y-1.5 pt-2 border-t border-slate-100">
-              <span className="text-xs font-bold text-slate-700">Payload y Detalles del Evento</span>
+              <span className="text-xs font-bold text-slate-700">Detalles y Metadatos del Evento</span>
               <pre className="p-3.5 rounded-xl bg-slate-900 border border-slate-800 text-[11px] font-mono text-emerald-300 overflow-x-auto max-h-40 leading-relaxed shadow-inner">
                 {JSON.stringify(registro.details, null, 2)}
               </pre>

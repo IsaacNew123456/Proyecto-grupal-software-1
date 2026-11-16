@@ -25,7 +25,7 @@ export const TarjetasResumenBitacora: React.FC<TarjetasResumenBitacoraProps> = (
           </div>
         </div>
         <p className="text-2xl font-black font-mono text-slate-900 tracking-tight">{totalRegistros}</p>
-        <p className="text-[11px] text-slate-400 font-mono">Modo WORM Inmutable</p>
+        <p className="text-[11px] text-slate-400 font-mono">Registro Inmutable</p>
       </div>
 
       {/* Tarjeta 2: Estado Criptográfico */}
@@ -79,8 +79,8 @@ export const TarjetasResumenBitacora: React.FC<TarjetasResumenBitacoraProps> = (
             <Layers className="w-3.5 h-3.5" />
           </div>
         </div>
-        <p className="text-sm font-bold text-slate-900">No-Repudio & Forense</p>
-        <p className="text-[11px] text-slate-400 font-mono">ISO 11226 · Cumplimiento SST</p>
+        <p className="text-sm font-bold text-slate-900">Auditoría & Trazabilidad</p>
+        <p className="text-[11px] text-slate-400 font-mono">Trazabilidad de Seguridad</p>
       </div>
     </div>
   );

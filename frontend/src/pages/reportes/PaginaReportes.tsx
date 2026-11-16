@@ -145,7 +145,7 @@ export const PaginaReportes: React.FC = () => {
             <span>Centro de Reportes y Dictámenes Certificados</span>
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            Exportación oficial de auditorías biomecánicas corporativas en Excel y expedientes forenses con sello criptográfico SHA-256
+            Exportación de informes ergonómicos corporativos en Excel y dictámenes de supervisión en PDF
           </p>
         </div>
 
@@ -205,7 +205,7 @@ export const PaginaReportes: React.FC = () => {
             className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-2xs transition-all disabled:opacity-40 cursor-pointer"
           >
             <Download className="w-4 h-4" />
-            <span>{descargandoExcel ? 'Generando Excel multi-pestaña...' : 'Descargar Reporte Ergonómico Excel'}</span>
+            <span>{descargandoExcel ? 'Generando Excel...' : 'Descargar Informe Ergonómico (.xlsx)'}</span>
           </button>
         </div>
 
@@ -221,9 +221,9 @@ export const PaginaReportes: React.FC = () => {
               </span>
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-900">Dictamen Forense con Sello Criptográfico (.pdf)</h3>
+              <h3 className="text-sm font-bold text-slate-900">Dictamen de Supervisión y Seguridad (.pdf)</h3>
               <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                Expediente individual pericial con dictamen legal. Contiene índice sintético de integridad, cronología de incidentes correlacionados, trazabilidad de atajos de teclado y sello de integridad SHA-256.
+                Expediente individual de supervisión. Contiene índice de integridad, cronología de incidentes detectados, trazabilidad de eventos y verificación de integridad.
               </p>
             </div>
             <div className="text-[11px] text-slate-500 font-mono space-y-1 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
@@ -234,8 +234,8 @@ export const PaginaReportes: React.FC = () => {
                 </span>
               </div>
               <div className="flex items-center justify-between text-slate-600">
-                <span>Garantía Legal:</span>
-                <span className="text-slate-800">No-repudio & Cadena WORM</span>
+                <span>Certificación:</span>
+                <span className="text-slate-800">Integridad criptográfica verificada</span>
               </div>
             </div>
           </div>
@@ -246,7 +246,7 @@ export const PaginaReportes: React.FC = () => {
             className="w-full py-2.5 px-4 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-2xs transition-all disabled:opacity-40 cursor-pointer"
           >
             <Download className="w-4 h-4" />
-            <span>{descargandoPdf ? 'Generando Dictamen Certificado...' : 'Descargar Dictamen Forense PDF'}</span>
+            <span>{descargandoPdf ? 'Generando Dictamen...' : 'Descargar Dictamen en PDF'}</span>
           </button>
         </div>
       </div>
