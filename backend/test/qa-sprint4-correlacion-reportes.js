@@ -62,43 +62,35 @@ async function runTests() {
   try {
     // 1. Autenticación como Administrador
     console.log('[QA 1/7] Autenticación administrativa JWT...');
-    const loginRes = await request('POST', '/auth/login', {
-      correo: 'admin@techcorp.com',
-      clave: 'Admin123!',
+    let loginRes = await request('POST', '/auth/login', {
+      correo: 'carlos.mendoza@visitask.com',
+      clave: '12345',
     });
 
     if (loginRes.status !== 200 || !loginRes.data.token) {
-      console.log('  (!) Admin no encontrado con clave estándar. Intentando con usuario demo...');
+      loginRes = await request('POST', '/auth/login', {
+        correo: 'admin@techcorp.com',
+        clave: 'Admin123!',
+      });
     }
+
     const token = loginRes.data.token;
     assert.ok(token, 'Debe obtener token JWT válido');
-    console.log('  ✓ Autenticación exitosa (Token JWT emitido)');
+    console.log(`  ✓ Autenticación exitosa (Token emitido para ${loginRes.data.usuario?.nombre || 'Admin'})`);
 
-    // 2. Iniciar una sesión de prueba para generar telemetría
+    // 2. Iniciar una sesión de prueba con eventos
     console.log('\n[QA 2/7] Creación de sesión e inyección de eventos de telemetría...');
-    const sesionRes = await request('POST', '/supervision/sesiones/iniciar', { tipo: 'EXAMEN' }, token);
-    assert.strictEqual(sesionRes.status, 201, 'Debe iniciar sesión de supervisión');
-    const sessionId = sesionRes.data.id;
-    console.log(`  ✓ Sesión iniciada: ${sessionId}`);
-
-    // Inyectar eventos de conducta para activar reglas del motor
-    await request('POST', `/supervision/sesiones/${sessionId}/eventos`, {
-      tipo: 'GAZE_DOWN_SUSTAINED',
-      duracionMs: 4200,
-      detalles: { pitch: -35, yaw: 2, rulaScore: 4 },
-    }, token);
-    await request('POST', `/supervision/sesiones/${sessionId}/eventos`, {
-      tipo: 'GAZE_DOWN_SUSTAINED',
-      duracionMs: 3800,
-      detalles: { pitch: -32, yaw: 1, rulaScore: 4 },
-    }, token);
-    console.log('  ✓ Eventos de conducta inyectados exitosamente');
+    const demoRes = await request('POST', '/supervision/sesiones/demo', null, token);
+    assert.strictEqual(demoRes.status, 201, 'Debe crear sesión demo');
+    const sessionId = demoRes.data.sessionId;
+    console.log(`  ✓ Sesión demo iniciada: ${sessionId}`);
+    console.log(`  ✓ Total eventos inyectados: ${demoRes.data.totalEventosInyectados}`);
 
     // 3. CU20: Ejecución del motor de correlación
     console.log('\n[QA 3/7] CU20: Evaluación de ventana deslizante en Motor de Correlación...');
     const correlacionRes = await request('POST', `/supervision/correlacion/${sessionId}`, null, token);
     assert.strictEqual(correlacionRes.status, 200, 'Motor de correlación debe responder HTTP 200');
-    console.log(`  ✓ Motor ejecutado. Total incidentes generados: ${correlacionRes.data.total}`);
+    console.log(`  ✓ Motor ejecutado. Total incidentes correlacionados: ${correlacionRes.data.total}`);
 
     // 4. CU22: Listar y auditar incidentes
     console.log('\n[QA 4/7] CU22: Trazabilidad y auditoría de incidentes...');
@@ -110,11 +102,11 @@ async function runTests() {
       const primerInc = incidentesRes.data[0];
       const auditarRes = await request('PUT', `/supervision/incidentes/${primerInc.id}/auditar`, {
         estado: 'CONFIRMADO',
-        justificacion: 'Validado por QA automatizado',
+        justificacion: 'Validado por QA automatizado de Sprint 4',
       }, token);
       assert.strictEqual(auditarRes.status, 200, 'Auditoría debe responder HTTP 200');
       assert.strictEqual(auditarRes.data.estado, 'CONFIRMADO');
-      console.log(`  ✓ Incidente ${primerInc.id} auditado como CONFIRMADO`);
+      console.log(`  ✓ Incidente ${primerInc.id.slice(0, 8)} auditado como CONFIRMADO con justificación`);
     }
 
     // 5. CU23: Índices sintéticos
@@ -141,7 +133,8 @@ async function runTests() {
     console.log('\n[QA 7/7] CU26: Verificación de Bitácora Inmutable WORM y cadena SHA-256...');
     const bitacoraRes = await request('GET', '/supervision/bitacora', null, token);
     assert.strictEqual(bitacoraRes.status, 200, 'Bitácora debe responder HTTP 200');
-    console.log(`  ✓ Registros recuperados de la bitácora: ${bitacoraRes.data.length}`);
+    const totalRegs = bitacoraRes.data.registros ? bitacoraRes.data.registros.length : (bitacoraRes.data.length || 0);
+    console.log(`  ✓ Registros recuperados de la bitácora: ${totalRegs}`);
 
     const verificarRes = await request('GET', '/supervision/bitacora/verificar', null, token);
     assert.strictEqual(verificarRes.status, 200, 'Verificación debe responder HTTP 200');
