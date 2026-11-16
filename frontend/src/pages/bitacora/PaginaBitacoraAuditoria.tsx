@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   ShieldCheck,
   Download,
+  FileSpreadsheet,
   RefreshCw,
   CheckCircle2,
   AlertTriangle,
@@ -100,6 +101,26 @@ export const PaginaBitacoraAuditoria: React.FC = () => {
     }
   };
 
+  const exportarExcel = async () => {
+    try {
+      const params = categoria !== 'TODAS' ? `?categoria=${categoria}` : '';
+      const res = await api.get(`/supervision/bitacora/exportar-excel${params}`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(
+        new Blob([res.data], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        }),
+      );
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `bitacora-auditoria-${new Date().toISOString().slice(0, 10)}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch {
+      // Ignorar error
+    }
+  };
+
   const exportarCsv = async () => {
     try {
       const params = categoria !== 'TODAS' ? `?categoria=${categoria}` : '';
@@ -180,12 +201,12 @@ export const PaginaBitacoraAuditoria: React.FC = () => {
           </button>
 
           <button
-            onClick={exportarCsv}
+            onClick={exportarExcel}
             className="px-3.5 py-2 rounded-xl bg-white text-slate-700 border border-slate-200 text-xs font-semibold hover:bg-slate-50 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
-            title="Descargar en formato CSV para Excel"
+            title="Descargar bitácora completa en Excel estructurado (.xlsx)"
           >
-            <Download className="w-3.5 h-3.5 text-sky-600" />
-            <span>CSV</span>
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Excel (.xlsx)</span>
           </button>
 
           <button

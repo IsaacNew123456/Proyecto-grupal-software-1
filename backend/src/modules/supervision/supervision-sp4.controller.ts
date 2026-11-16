@@ -407,6 +407,33 @@ export class SupervisionSp4Controller {
     return verificacion;
   }
 
+  @Get('bitacora/exportar-excel')
+  @ApiOperation({ summary: 'CU26 – Exportar registros WORM a hoja de cálculo Excel (.xlsx) estructurada' })
+  async exportarExcel(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query('categoria') categoria?: string,
+    @Res() res?: Response,
+  ) {
+    const buffer = await this.bitacora.exportarExcel(categoria);
+
+    await this.bitacora.registrar({
+      userId: user.id,
+      action: 'EXPORTAR_BITACORA_EXCEL',
+      entity: 'AuditLog',
+      categoria: 'ACCESOS_DATOS',
+      details: {
+        filtroCategoria: categoria || 'TODAS',
+      },
+    });
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="bitacora-auditoria-${new Date().toISOString().slice(0, 10)}.xlsx"`,
+    );
+    res.end(buffer);
+  }
+
   @Get('bitacora/exportar')
   @ApiOperation({ summary: 'CU26 – Exportar registros WORM a CSV' })
   async exportarCsv(
