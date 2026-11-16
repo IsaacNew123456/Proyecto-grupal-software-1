@@ -134,6 +134,12 @@ export const PaginaBitacoraAuditoria: React.FC = () => {
 
   const obtenerEstiloCategoria = (cat: string) => {
     switch (cat) {
+      case 'EVENTOS_TECNICOS':
+        return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'ACCESOS_DATOS':
+        return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+      case 'CAMBIOS_POLITICAS':
+        return 'bg-purple-50 text-purple-700 border-purple-200';
       case 'SEGURIDAD':
         return 'bg-rose-50 text-rose-700 border-rose-200';
       case 'AUDITORIA':
@@ -143,7 +149,7 @@ export const PaginaBitacoraAuditoria: React.FC = () => {
       case 'ERGONOMIA':
         return 'bg-emerald-50 text-emerald-800 border-emerald-200';
       case 'LEGAL_COMPLIANCE':
-        return 'bg-purple-50 text-purple-800 border-purple-200';
+        return 'bg-violet-50 text-violet-800 border-violet-200';
       default:
         return 'bg-slate-100 text-slate-700 border-slate-200';
     }
@@ -261,6 +267,9 @@ export const PaginaBitacoraAuditoria: React.FC = () => {
               className="bg-slate-50 border border-slate-200 text-xs text-slate-700 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all cursor-pointer font-medium"
             >
               <option value="TODAS">Todas las categorías</option>
+              <option value="EVENTOS_TECNICOS">Eventos Técnicos (RF50)</option>
+              <option value="ACCESOS_DATOS">Accesos a Datos (RF50)</option>
+              <option value="CAMBIOS_POLITICAS">Cambios de Políticas (RF50)</option>
               <option value="SEGURIDAD">Seguridad</option>
               <option value="AUDITORIA">Auditoría</option>
               <option value="SUPERVISION">Supervisión</option>

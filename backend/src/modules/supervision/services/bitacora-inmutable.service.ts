@@ -56,14 +56,33 @@ export class BitacoraInmutableService {
   }
 
   /**
+   * Mapea categorías normalizadas de RF50 (Eventos Técnicos, Accesos a Datos, Cambios de Políticas)
+   * con compatibilidad hacia categorías históricas del sistema.
+   */
+  private construirFiltroCategoria(categoria?: string): any {
+    if (!categoria || categoria === 'TODAS') return undefined;
+    if (categoria === 'EVENTOS_TECNICOS') {
+      return { in: ['EVENTOS_TECNICOS', 'SUPERVISION', 'SISTEMA'] };
+    }
+    if (categoria === 'ACCESOS_DATOS') {
+      return { in: ['ACCESOS_DATOS', 'SEGURIDAD'] };
+    }
+    if (categoria === 'CAMBIOS_POLITICAS') {
+      return { in: ['CAMBIOS_POLITICAS', 'LEGAL_COMPLIANCE', 'AUDITORIA', 'CONFIGURACION'] };
+    }
+    return categoria;
+  }
+
+  /**
    * Consulta registros con soporte de filtros por categoría, búsqueda de texto y rango de fechas.
    */
   async consultarRegistros(filtros: FiltrosBitacora = {}) {
     const { categoria, accion, busqueda, fechaInicio, fechaFin, limit = 50, offset = 0 } = filtros;
     const where: any = {};
 
-    if (categoria && categoria !== 'TODAS') {
-      where.categoria = categoria;
+    const catFilter = this.construirFiltroCategoria(categoria);
+    if (catFilter) {
+      where.categoria = catFilter;
     }
 
     if (accion) {
@@ -187,7 +206,8 @@ export class BitacoraInmutableService {
    * Exporta registros en formato CSV compatible con Excel y herramientas de auditoría.
    */
   async exportarCsv(categoria?: string): Promise<string> {
-    const where = categoria && categoria !== 'TODAS' ? { categoria } : {};
+    const catFilter = this.construirFiltroCategoria(categoria);
+    const where = catFilter ? { categoria: catFilter } : {};
     const logs = await this.prisma.auditLog.findMany({
       where,
       orderBy: { timestamp: 'desc' },
@@ -224,7 +244,8 @@ export class BitacoraInmutableService {
    * Exporta registros completos con metadata criptográfica en formato JSON.
    */
   async exportarJson(categoria?: string) {
-    const where = categoria && categoria !== 'TODAS' ? { categoria } : {};
+    const catFilter = this.construirFiltroCategoria(categoria);
+    const where = catFilter ? { categoria: catFilter } : {};
     const [verificacion, logs] = await Promise.all([
       this.verificarIntegridadCadena(),
       this.prisma.auditLog.findMany({

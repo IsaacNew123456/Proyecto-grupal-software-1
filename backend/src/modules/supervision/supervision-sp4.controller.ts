@@ -121,6 +121,18 @@ export class SupervisionSp4Controller {
 
     const incidentes = await this.correlacion.evaluarVentanaDeslizante(sesion.id);
 
+    await this.bitacora.registrar({
+      userId: user.id,
+      action: 'INICIAR_SESION_DEMO',
+      entity: 'SupervisionSession',
+      entityId: sesion.id,
+      categoria: 'EVENTOS_TECNICOS',
+      details: {
+        totalEventosInyectados: eventosDemo.length,
+        totalIncidentesGenerados: incidentes.length,
+      },
+    });
+
     return {
       mensaje: 'Sesión demo creada y correlacionada exitosamente con el motor CU20',
       sessionId: sesion.id,
@@ -133,15 +145,42 @@ export class SupervisionSp4Controller {
   @Post('correlacion/:sessionId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'CU20 – Ejecutar motor de correlación de ventana deslizante' })
-  async correlacionar(@Param('sessionId') sessionId: string) {
+  async correlacionar(
+    @Param('sessionId') sessionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
     const incidentes = await this.correlacion.evaluarVentanaDeslizante(sessionId);
+
+    await this.bitacora.registrar({
+      userId: user.id,
+      action: 'EJECUTAR_CORRELACION_REGLAS',
+      entity: 'SupervisionSession',
+      entityId: sessionId,
+      categoria: 'EVENTOS_TECNICOS',
+      details: { totalIncidentes: incidentes.length, ventanaSegundos: 60 },
+    });
+
     return { total: incidentes.length, incidentes };
   }
 
   @Get('incidentes/:sessionId')
   @ApiOperation({ summary: 'CU22 – Listar incidentes correlacionados de una sesión' })
-  async listarIncidentes(@Param('sessionId') sessionId: string) {
-    return this.correlacion.obtenerIncidentes(sessionId);
+  async listarIncidentes(
+    @Param('sessionId') sessionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    const incidentes = await this.correlacion.obtenerIncidentes(sessionId);
+
+    await this.bitacora.registrar({
+      userId: user.id,
+      action: 'CONSULTAR_EXPEDIENTE_FORENSE',
+      entity: 'SupervisionSession',
+      entityId: sessionId,
+      categoria: 'ACCESOS_DATOS',
+      details: { totalIncidentes: incidentes.length },
+    });
+
+    return incidentes;
   }
 
   @Put('incidentes/:incidentId/auditar')
@@ -164,7 +203,7 @@ export class SupervisionSp4Controller {
       action: 'AUDITAR_INCIDENTE',
       entity: 'Incident',
       entityId: incidentId,
-      categoria: 'AUDITORIA',
+      categoria: 'CAMBIOS_POLITICAS',
       details: { estadoNuevo: estadoNormalizado, justificacion: dto.justificacion },
     });
 
@@ -198,7 +237,7 @@ export class SupervisionSp4Controller {
       action: 'CERRAR_SESION_SUPERVISION',
       entity: 'SupervisionSession',
       entityId: sessionId,
-      categoria: 'SUPERVISION',
+      categoria: 'EVENTOS_TECNICOS',
       details: {
         scoreIntegridad: indices.indiceIntegridad,
         indiceBienestar: indices.indiceBienestar,
@@ -257,13 +296,13 @@ export class SupervisionSp4Controller {
       eventosErgonomicos: evsErgonomicos,
     });
 
-    // Registrar en bitácora inmutable WORM (CU26)
+    // Registrar en bitácora inmutable WORM (CU26 - RF50: Accesos a datos)
     await this.bitacora.registrar({
       userId: user.id,
       action: 'EXPORTAR_REPORTE_ERGONOMICO_EXCEL',
       entity: 'SupervisionSession',
       entityId: sessionId,
-      categoria: 'ERGONOMIA',
+      categoria: 'ACCESOS_DATOS',
       details: {
         minutosTotales,
         promedioRula: promedioRula.toFixed(1),
@@ -297,13 +336,13 @@ export class SupervisionSp4Controller {
 
     const buffer = await this.reportes.generarReporteForensePdf(session);
 
-    // Registrar auditoría de descarga en bitácora WORM (CU26 / Seguridad)
+    // Registrar auditoría de descarga en bitácora WORM (CU26 / RF50: Accesos a datos)
     await this.bitacora.registrar({
       userId: user.id,
       action: 'EXPORTAR_REPORTE_FORENSE_PDF',
       entity: 'SupervisionSession',
       entityId: sessionId,
-      categoria: 'SEGURIDAD',
+      categoria: 'ACCESOS_DATOS',
       details: {
         evaluadoId: session.userId,
         scoreIntegridad: session.scoreIntegridad,
@@ -347,14 +386,42 @@ export class SupervisionSp4Controller {
 
   @Get('bitacora/verificar')
   @ApiOperation({ summary: 'CU26 – Verificar matemáticamente la integridad de la cadena SHA-256' })
-  async verificarCadena() {
-    return this.bitacora.verificarIntegridadCadena();
+  async verificarCadena(@CurrentUser() user: AuthenticatedUser) {
+    const verificacion = await this.bitacora.verificarIntegridadCadena();
+
+    await this.bitacora.registrar({
+      userId: user.id,
+      action: 'VERIFICAR_INTEGRIDAD_CADENA',
+      entity: 'AuditLog',
+      categoria: 'EVENTOS_TECNICOS',
+      details: {
+        valida: verificacion.valida,
+        totalRegistros: verificacion.totalRegistros,
+      },
+    });
+
+    return verificacion;
   }
 
   @Get('bitacora/exportar')
   @ApiOperation({ summary: 'CU26 – Exportar registros WORM a CSV' })
-  async exportarCsv(@Query('categoria') categoria?: string, @Res() res?: Response) {
+  async exportarCsv(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query('categoria') categoria?: string,
+    @Res() res?: Response,
+  ) {
     const csv = await this.bitacora.exportarCsv(categoria);
+
+    await this.bitacora.registrar({
+      userId: user.id,
+      action: 'EXPORTAR_BITACORA_CSV',
+      entity: 'AuditLog',
+      categoria: 'ACCESOS_DATOS',
+      details: {
+        filtroCategoria: categoria || 'TODAS',
+      },
+    });
+
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', 'attachment; filename="bitacora-inmutable-worm.csv"');
     res.send(csv);
@@ -362,8 +429,23 @@ export class SupervisionSp4Controller {
 
   @Get('bitacora/exportar-json')
   @ApiOperation({ summary: 'CU26 – Exportar registros WORM con metadata criptográfica a JSON' })
-  async exportarJson(@Query('categoria') categoria?: string, @Res() res?: Response) {
+  async exportarJson(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query('categoria') categoria?: string,
+    @Res() res?: Response,
+  ) {
     const json = await this.bitacora.exportarJson(categoria);
+
+    await this.bitacora.registrar({
+      userId: user.id,
+      action: 'EXPORTAR_BITACORA_JSON',
+      entity: 'AuditLog',
+      categoria: 'ACCESOS_DATOS',
+      details: {
+        filtroCategoria: categoria || 'TODAS',
+      },
+    });
+
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.setHeader('Content-Disposition', 'attachment; filename="bitacora-inmutable-worm.json"');
     res.send(JSON.stringify(json, null, 2));
