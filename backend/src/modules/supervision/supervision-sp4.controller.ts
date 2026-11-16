@@ -215,18 +215,60 @@ export class SupervisionSp4Controller {
 
   @Get('reportes/:sessionId/ergonomico-excel')
   @ApiOperation({ summary: 'CU24 – Descargar reporte ergonómico corporativo en formato Excel (.xlsx)' })
-  async descargarReporteExcel(@Param('sessionId') sessionId: string, @Res() res: Response) {
+  async descargarReporteExcel(
+    @Param('sessionId') sessionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @Res() res: Response,
+  ) {
     const session = await this.prisma.supervisionSession.findUnique({
       where: { id: sessionId },
-      include: { usuario: true, eventosConducta: true, incidentes: true },
+      include: { usuario: true, organizacion: true, eventosConducta: true, incidentes: true },
     });
     if (!session) throw new NotFoundException('Sesión de supervisión no encontrada');
 
+    const minutosTotales = Math.max(
+      1,
+      Math.round(
+        ((session.fin ? session.fin.getTime() : Date.now()) - new Date(session.inicio).getTime()) / 60000,
+      ),
+    );
+
+    const evsErgonomicos = session.eventosConducta.filter(
+      (e) => e.tipo === 'POSTURA_FORZADA' || (e.detalles as any)?.rulaScore,
+    );
+
+    let promedioRula = 2.8;
+    if (evsErgonomicos.length > 0) {
+      const sum = evsErgonomicos.reduce((acc, e) => acc + Number((e.detalles as any)?.rulaScore || 3.5), 0);
+      promedioRula = sum / evsErgonomicos.length;
+    }
+
+    const indices = await this.correlacion.calcularIndices(sessionId);
+
     const buffer = await this.reportes.generarReporteErgonomicoExcel({
-      totalSesiones: 1,
-      minutosTotales: 45,
-      totalAlertas: session.incidentes?.length || 0,
-      promedioRula: 2.8,
+      sessionId: session.id,
+      organizacion: session.organizacion?.nombre,
+      evaluado: session.usuario ? `${session.usuario.nombre} ${session.usuario.apellido}` : 'Evaluado',
+      correo: session.usuario?.correo,
+      minutosTotales,
+      totalAlertas: evsErgonomicos.length > 0 ? evsErgonomicos.length : session.incidentes?.length || 0,
+      promedioRula,
+      scoreBienestar: indices.indiceBienestar,
+      eventosErgonomicos: evsErgonomicos,
+    });
+
+    // Registrar en bitácora inmutable WORM (CU26)
+    await this.bitacora.registrar({
+      userId: user.id,
+      action: 'EXPORTAR_REPORTE_ERGONOMICO_EXCEL',
+      entity: 'SupervisionSession',
+      entityId: sessionId,
+      categoria: 'ERGONOMIA',
+      details: {
+        minutosTotales,
+        promedioRula: promedioRula.toFixed(1),
+        scoreBienestar: indices.indiceBienestar,
+      },
     });
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
