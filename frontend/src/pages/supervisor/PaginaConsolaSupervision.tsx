@@ -12,6 +12,7 @@ import {
   FileSpreadsheet,
   FileText,
   Download,
+  CheckCircle,
 } from 'lucide-react';
 import { ConsolaMosaicoSemaforo } from '../../features/supervision/components/ConsolaMosaicoSemaforo';
 import { LineaTiempoIncidentes } from '../../features/supervision/components/LineaTiempoIncidentes';
@@ -42,6 +43,7 @@ export const PaginaConsolaSupervision: React.FC = () => {
   const [mensajeExito, setMensajeExito] = useState<string | null>(null);
   const [descargandoExcel, setDescargandoExcel] = useState(false);
   const [descargandoPdf, setDescargandoPdf] = useState(false);
+  const [cerrandoSesion, setCerrandoSesion] = useState(false);
 
   const cargarSesiones = async () => {
     try {
@@ -139,6 +141,24 @@ export const PaginaConsolaSupervision: React.FC = () => {
     }
   };
 
+  const cerrarSesionActual = async () => {
+    if (!sessionIdAuditoria) return;
+    setCerrandoSesion(true);
+    setMensajeExito(null);
+    try {
+      const res = await api.post(`/supervision/sesiones/${sessionIdAuditoria}/cerrar`);
+      setIndices(res.data.indices);
+      setMensajeExito(
+        `Sesión cerrada formalmente (CU23). Índice de Integridad persistido: ${res.data.indices.indiceIntegridad}/100.`,
+      );
+      await cargarSesiones();
+    } catch {
+      // Ignorar error
+    } finally {
+      setCerrandoSesion(false);
+    }
+  };
+
   useEffect(() => {
     if (sessionIdAuditoria) {
       api
@@ -220,10 +240,20 @@ export const PaginaConsolaSupervision: React.FC = () => {
             <button
               onClick={() => ejecutarCorrelacion()}
               disabled={correlacionando || !sessionIdAuditoria.trim()}
-              className="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs hover:bg-emerald-400 transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-40"
+              className="px-3.5 py-2 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs hover:bg-emerald-400 transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-40"
             >
               <PlayCircle className={`w-3.5 h-3.5 ${correlacionando ? 'animate-spin' : ''}`} />
-              <span>{correlacionando ? 'Evaluando Reglas...' : 'Ejecutar Correlación (CU20)'}</span>
+              <span>{correlacionando ? 'Evaluando...' : 'Correlación (CU20)'}</span>
+            </button>
+
+            <button
+              onClick={() => cerrarSesionActual()}
+              disabled={cerrandoSesion || !sessionIdAuditoria.trim()}
+              className="px-3.5 py-2 rounded-xl bg-slate-800 text-slate-200 hover:text-white hover:bg-slate-700 border border-slate-700 font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-40"
+              title="Cierra formalmente la sesión y persiste los índices sintéticos de integridad y bienestar (CU23)"
+            >
+              <CheckCircle className={`w-3.5 h-3.5 text-emerald-400 ${cerrandoSesion ? 'animate-spin' : ''}`} />
+              <span>{cerrandoSesion ? 'Cerrando...' : 'Cerrar Sesión (CU23)'}</span>
             </button>
           </div>
         </div>

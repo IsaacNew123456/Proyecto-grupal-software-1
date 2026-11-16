@@ -334,24 +334,68 @@ export class MotorCorrelacionService {
     });
 
     if (!session) {
-      return { indiceIntegridad: 100, indiceBienestar: 100, totalIncidentes: 0 };
+      return {
+        sessionId,
+        indiceIntegridad: 100,
+        indiceBienestar: 100,
+        totalIncidentes: 0,
+        totalEventos: 0,
+        estadoSST: 'OPTIMO',
+        desgloseIntegridad: { totalDeducciones: 0 },
+        desgloseBienestar: { eventosFatiga: 0, clasificacion: 'OPTIMO' },
+      };
     }
 
     const incidentes = session.incidentes || [];
     let deducciones = 0;
+    let criticos = 0;
+    let altos = 0;
+    let medios = 0;
+    let bajos = 0;
+    let desestimados = 0;
+    let falsosPositivos = 0;
+
     for (const inc of incidentes) {
-      if (inc.estado === 'DESESTIMADO' || inc.estado === 'FALSO_POSITIVO') continue;
-      if (inc.severidad === 'CRITICAL') deducciones += 25;
-      else if (inc.severidad === 'HIGH') deducciones += 15;
-      else if (inc.severidad === 'MEDIUM') deducciones += 8;
-      else deducciones += 4;
+      if (inc.estado === 'DESESTIMADO') {
+        desestimados++;
+        continue;
+      }
+      if (inc.estado === 'FALSO_POSITIVO') {
+        falsosPositivos++;
+        continue;
+      }
+
+      if (inc.severidad === 'CRITICAL') {
+        criticos++;
+        deducciones += 25;
+      } else if (inc.severidad === 'HIGH') {
+        altos++;
+        deducciones += 15;
+      } else if (inc.severidad === 'MEDIUM') {
+        medios++;
+        deducciones += 8;
+      } else {
+        bajos++;
+        deducciones += 4;
+      }
     }
+
     const indiceIntegridad = Math.max(0, 100 - deducciones);
 
     const eventos = session.eventosConducta || [];
-    const eventosFatiga = eventos.filter((e) => e.tipo === 'GAZE_DOWN_SUSTAINED' || e.tipo === 'FACE_ABSENT').length;
+    const eventosFatiga = eventos.filter(
+      (e) => e.tipo === 'GAZE_DOWN_SUSTAINED' || e.tipo === 'FACE_ABSENT',
+    ).length;
     const deduccionBienestar = Math.min(60, eventosFatiga * 6);
     const indiceBienestar = Math.max(40, 100 - deduccionBienestar);
+    const estadoSST =
+      indiceBienestar >= 80 ? 'OPTIMO' : indiceBienestar >= 60 ? 'MODERADO' : 'CRITICO';
+
+    // Persistir el score de integridad en la sesión en base de datos
+    await this.prisma.supervisionSession.update({
+      where: { id: sessionId },
+      data: { scoreIntegridad: indiceIntegridad },
+    });
 
     return {
       sessionId,
@@ -359,7 +403,26 @@ export class MotorCorrelacionService {
       indiceBienestar,
       totalIncidentes: incidentes.length,
       totalEventos: eventos.length,
-      estadoSST: indiceBienestar >= 80 ? 'OPTIMO' : indiceBienestar >= 60 ? 'MODERADO' : 'CRITICO',
+      estadoSST,
+      desgloseIntegridad: {
+        criticos,
+        altos,
+        medios,
+        bajos,
+        desestimados,
+        falsosPositivos,
+        totalDeducciones: deducciones,
+      },
+      desgloseBienestar: {
+        eventosFatiga,
+        clasificacion: estadoSST,
+        recomendacionSST:
+          estadoSST === 'OPTIMO'
+            ? 'Postura y pausas en rango saludable'
+            : estadoSST === 'MODERADO'
+            ? 'Se recomiendan pausas activas cada 45 minutos'
+            : 'Riesgo ergonómico elevado; requiere ajuste de puesto de trabajo',
+      },
     };
   }
 }

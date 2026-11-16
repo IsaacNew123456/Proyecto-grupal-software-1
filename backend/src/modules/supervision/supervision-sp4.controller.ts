@@ -177,6 +177,42 @@ export class SupervisionSp4Controller {
     return this.correlacion.calcularIndices(sessionId);
   }
 
+  @Post('sesiones/:sessionId/cerrar')
+  @ApiOperation({ summary: 'CU23 – Cerrar sesión y calcular/persistir índices sintéticos' })
+  async cerrarSesion(
+    @Param('sessionId') sessionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    const indices = await this.correlacion.calcularIndices(sessionId);
+    const sesion = await this.prisma.supervisionSession.update({
+      where: { id: sessionId },
+      data: {
+        estado: 'COMPLETADA',
+        fin: new Date(),
+        scoreIntegridad: indices.indiceIntegridad,
+      },
+    });
+
+    await this.bitacora.registrar({
+      userId: user.id,
+      action: 'CERRAR_SESION_SUPERVISION',
+      entity: 'SupervisionSession',
+      entityId: sessionId,
+      categoria: 'SUPERVISION',
+      details: {
+        scoreIntegridad: indices.indiceIntegridad,
+        indiceBienestar: indices.indiceBienestar,
+        totalIncidentes: indices.totalIncidentes,
+      },
+    });
+
+    return {
+      mensaje: 'Sesión cerrada exitosamente e índices sintéticos calculados',
+      sesion,
+      indices,
+    };
+  }
+
   @Get('reportes/:sessionId/ergonomico-excel')
   @ApiOperation({ summary: 'CU24 – Descargar reporte ergonómico corporativo en formato Excel (.xlsx)' })
   async descargarReporteExcel(@Param('sessionId') sessionId: string, @Res() res: Response) {
