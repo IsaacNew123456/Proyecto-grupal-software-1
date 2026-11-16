@@ -95,7 +95,7 @@ export const LineaTiempoIncidentes: React.FC<Props> = ({ sessionId, onIncidenteA
       <div className="flex items-center justify-between pb-2 border-b border-slate-200">
         <div className="flex items-center gap-2">
           <ShieldAlert className="w-4 h-4 text-emerald-600" />
-          <h4 className="text-xs font-bold text-slate-900">Incidentes Correlacionados por Reglas (CU20 / CU22)</h4>
+          <h4 className="text-xs font-bold text-slate-900">Incidentes Correlacionados</h4>
           <span className="text-[10px] font-mono text-slate-500">({incidentes.length})</span>
         </div>
         <button
@@ -110,7 +110,7 @@ export const LineaTiempoIncidentes: React.FC<Props> = ({ sessionId, onIncidenteA
 
       {incidentes.length === 0 ? (
         <div className="p-8 text-center text-slate-500 text-xs font-mono bg-slate-50 rounded-2xl border border-slate-200">
-          Cero anomalías o incidentes reportados en esta sesión. Presione &quot;Correlación (CU20)&quot; para evaluar eventos.
+          Cero anomalías o incidentes reportados en esta sesión. Presione &quot;Ejecutar Correlación&quot; para evaluar eventos.
         </div>
       ) : (
         <div className="space-y-2.5">
@@ -252,7 +252,7 @@ export const LineaTiempoIncidentes: React.FC<Props> = ({ sessionId, onIncidenteA
         </div>
       )}
 
-      {/* Modal interactivo de auditoría con justificación técnica (CU22) */}
+      {/* Modal interactivo de auditoría con justificación técnica */}
       <ModalAuditarIncidente
         incidente={incidenteModal}
         abierto={!!incidenteModal}

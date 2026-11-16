@@ -75,7 +75,7 @@ export const PaginaConsolaSupervision: React.FC = () => {
       const resIndices = await api.get(`/supervision/indices/${sid}`);
       setIndices(resIndices.data);
       setMensajeExito(
-        `Motor CU20 ejecutado con éxito: ${resCorrelacion.data.total} incidentes correlacionados mediante ventanas deslizantes.`,
+        `Motor de correlación ejecutado con éxito: ${resCorrelacion.data.total} incidentes correlacionados mediante ventanas deslizantes.`,
       );
     } catch {
       // Ignorar
@@ -95,7 +95,7 @@ export const PaginaConsolaSupervision: React.FC = () => {
       await cargarSesiones();
       await ejecutarCorrelacion(nuevaId);
       setMensajeExito(
-        '¡Sesión demo generada y correlacionada! Se inyectaron 10 eventos biométricos y se ejecutaron las reglas CU20.',
+        '¡Sesión demo generada y correlacionada! Se inyectaron 10 eventos biométricos y se ejecutaron las reglas de correlación.',
       );
     } catch {
       // Manejar error silencioso
@@ -154,7 +154,7 @@ export const PaginaConsolaSupervision: React.FC = () => {
       const res = await api.post(`/supervision/sesiones/${sessionIdAuditoria}/cerrar`);
       setIndices(res.data.indices);
       setMensajeExito(
-        `Sesión cerrada formalmente (CU23). Índice de Integridad persistido: ${res.data.indices.indiceIntegridad}/100.`,
+        `Sesión cerrada formalmente. Índice de Integridad persistido: ${res.data.indices.indiceIntegridad}/100.`,
       );
       await cargarSesiones();
     } catch {
@@ -185,7 +185,7 @@ export const PaginaConsolaSupervision: React.FC = () => {
             <span>Consola de Supervisión en Tiempo Real</span>
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            Mosaico semáforo SST (CU21) y Motor de Correlación de reglas sobre ventanas deslizantes de 60s (CU20)
+            Mosaico semáforo SST y Motor de Correlación de reglas sobre ventanas deslizantes de 60s
           </p>
         </div>
 
@@ -196,7 +196,7 @@ export const PaginaConsolaSupervision: React.FC = () => {
           title="Genera una sesión de prueba con eventos de postura, mirada y atajos para probar el motor"
         >
           <Sparkles className={`w-3.5 h-3.5 text-emerald-600 ${generandoDemo ? 'animate-spin' : ''}`} />
-          <span>{generandoDemo ? 'Generando...' : 'Generar Sesión Demo con Eventos (CU20)'}</span>
+          <span>{generandoDemo ? 'Generando...' : 'Generar Sesión Demo con Eventos'}</span>
         </button>
       </div>
 
@@ -211,7 +211,7 @@ export const PaginaConsolaSupervision: React.FC = () => {
           }`}
         >
           <Monitor className="w-4 h-4" />
-          <span>Mosaico Semáforo en Tiempo Real (CU21)</span>
+          <span>Mosaico Semáforo en Tiempo Real</span>
         </button>
 
         <button
@@ -223,7 +223,7 @@ export const PaginaConsolaSupervision: React.FC = () => {
           }`}
         >
           <ShieldCheck className="w-4 h-4" />
-          <span>Análisis y Correlación Forense (CU20, CU22, CU23)</span>
+          <span>Análisis y Correlación Forense</span>
           {sessionIdAuditoria && (
             <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-mono bg-slate-100 text-slate-600 border border-slate-200">
               Sesión activa
@@ -236,12 +236,12 @@ export const PaginaConsolaSupervision: React.FC = () => {
           className="ml-auto hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-slate-200 text-xs font-medium transition-all shadow-2xs cursor-pointer"
         >
           <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
-          <span>Centro de Reportes (CU24/CU25)</span>
+          <span>Centro de Reportes</span>
           <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
         </button>
       </div>
 
-      {/* PESTAÑA 1: Mosaico Semáforo en Vivo (CU21) */}
+      {/* PESTAÑA 1: Mosaico Semáforo en Vivo */}
       {pestañaActiva === 'mosaico' && (
         <div className="space-y-4">
           <ConsolaMosaicoSemaforo
@@ -254,14 +254,14 @@ export const PaginaConsolaSupervision: React.FC = () => {
         </div>
       )}
 
-      {/* PESTAÑA 2: Panel de Correlación Forense (CU20, CU22, CU23) */}
+      {/* PESTAÑA 2: Panel de Correlación Forense */}
       {pestañaActiva === 'forense' && (
         <div className="rounded-2xl bg-white border border-slate-200/90 p-5 space-y-4 shadow-xs">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             <div>
               <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <span>Motor de Correlación Multidimensional (CU20)</span>
+                <span>Motor de Correlación Multidimensional</span>
               </h3>
               <p className="text-[11px] text-slate-500 font-mono mt-0.5">
                 Cruza postura RULA, vector de mirada y eventos en ventanas deslizantes para calificar severidad forense
@@ -297,17 +297,17 @@ export const PaginaConsolaSupervision: React.FC = () => {
                 className="px-3.5 py-2 rounded-xl bg-emerald-600 text-white font-semibold text-xs hover:bg-emerald-700 transition-all flex items-center gap-1.5 shadow-2xs disabled:opacity-40 cursor-pointer"
               >
                 <PlayCircle className={`w-3.5 h-3.5 ${correlacionando ? 'animate-spin' : ''}`} />
-                <span>{correlacionando ? 'Evaluando...' : 'Correlación (CU20)'}</span>
+                <span>{correlacionando ? 'Evaluando...' : 'Ejecutar Correlación'}</span>
               </button>
 
               <button
                 onClick={() => cerrarSesionActual()}
                 disabled={cerrandoSesion || !sessionIdAuditoria.trim()}
                 className="px-3.5 py-2 rounded-xl bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 font-semibold text-xs transition-all flex items-center gap-1.5 shadow-2xs disabled:opacity-40 cursor-pointer"
-                title="Cierra formalmente la sesión y persiste los índices sintéticos de integridad y bienestar (CU23)"
+                title="Cierra formalmente la sesión y persiste los índices sintéticos de integridad y bienestar"
               >
                 <CheckCircle className={`w-3.5 h-3.5 text-emerald-600 ${cerrandoSesion ? 'animate-spin' : ''}`} />
-                <span>{cerrandoSesion ? 'Cerrando...' : 'Cerrar Sesión (CU23)'}</span>
+                <span>{cerrandoSesion ? 'Cerrando...' : 'Cerrar Sesión'}</span>
               </button>
             </div>
           </div>
@@ -341,7 +341,7 @@ export const PaginaConsolaSupervision: React.FC = () => {
             </div>
           )}
 
-          {/* Índices Sintéticos (CU23) */}
+          {/* Índices Sintéticos */}
           {indices && (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200/90 text-xs">
               <div className="flex items-center gap-3">
@@ -376,13 +376,13 @@ export const PaginaConsolaSupervision: React.FC = () => {
             </div>
           )}
 
-          {/* Enlace y Acciones hacia Centro de Reportes (CU24 y CU25) */}
+          {/* Enlace y Acciones hacia Centro de Reportes */}
           {sessionIdAuditoria.trim() && (
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200">
               <div className="text-xs">
                 <span className="font-bold text-slate-900 block">Reportes y Certificación de Sesión</span>
                 <span className="text-[11px] text-slate-500 font-mono">
-                  Exportación oficial en Excel corporativo (CU24) y Dictamen Forense PDF con sello SHA-256 (CU25)
+                  Exportación oficial en Excel corporativo y Dictamen Forense PDF con sello SHA-256
                 </span>
               </div>
 
@@ -419,7 +419,7 @@ export const PaginaConsolaSupervision: React.FC = () => {
             </div>
           )}
 
-          {/* Línea de tiempo de incidentes correlacionados con explicabilidad (CU20 y CU22) */}
+          {/* Línea de tiempo de incidentes correlacionados con explicabilidad */}
           {sessionIdAuditoria.trim() && (
             <div className="pt-2">
               <LineaTiempoIncidentes

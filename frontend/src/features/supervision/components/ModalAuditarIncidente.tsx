@@ -68,7 +68,7 @@ export const ModalAuditarIncidente: React.FC<Props> = ({
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-900">Auditar Incidente Forense (CU22)</h3>
+              <h3 className="text-sm font-bold text-slate-900">Auditar Incidente</h3>
               <p className="text-[11px] text-slate-500 font-mono">
                 Dictamen pericial con registro inmutable WORM
               </p>
@@ -96,7 +96,7 @@ export const ModalAuditarIncidente: React.FC<Props> = ({
           {incidente.signals && incidente.signals.length > 0 && (
             <div className="pt-2 border-t border-slate-200 flex items-center gap-2 text-[10px] font-mono text-slate-500">
               <Cpu className="w-3 h-3 text-sky-600" />
-              <span>{incidente.signals.length} señal(es) explicativas generadas por motor CU20</span>
+              <span>{incidente.signals.length} señal(es) explicativas generadas por el motor de correlación</span>
             </div>
           )}
         </div>

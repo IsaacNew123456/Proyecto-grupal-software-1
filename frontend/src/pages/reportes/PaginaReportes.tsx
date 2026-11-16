@@ -145,7 +145,7 @@ export const PaginaReportes: React.FC = () => {
             <span>Centro de Reportes y Dictámenes Certificados</span>
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            Exportación oficial de auditorías biomecánicas corporativas en Excel (CU24) y expedientes forenses con sello criptográfico SHA-256 (CU25)
+            Exportación oficial de auditorías biomecánicas corporativas en Excel y expedientes forenses con sello criptográfico SHA-256
           </p>
         </div>
 
@@ -166,7 +166,7 @@ export const PaginaReportes: React.FC = () => {
         </div>
       )}
 
-      {/* Tarjetas Principales de Descarga (CU24 y CU25) */}
+      {/* Tarjetas Principales de Descarga Oficial */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Tarjeta Reporte Ergonómico Excel */}
         <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs flex flex-col justify-between space-y-4">
@@ -176,7 +176,7 @@ export const PaginaReportes: React.FC = () => {
                 <FileSpreadsheet className="w-5 h-5" />
               </div>
               <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-mono font-semibold">
-                CU24 • Multi-pestaña
+                Formato Corporativo • Multi-pestaña
               </span>
             </div>
             <div>
@@ -217,7 +217,7 @@ export const PaginaReportes: React.FC = () => {
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <span className="px-2.5 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-200 text-[10px] font-mono font-semibold">
-                CU25 • Sello SHA-256
+                Dictamen Pericial • Sello SHA-256
               </span>
             </div>
             <div>

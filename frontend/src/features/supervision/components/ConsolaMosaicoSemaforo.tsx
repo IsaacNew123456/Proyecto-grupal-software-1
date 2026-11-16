@@ -56,7 +56,7 @@ export const ConsolaMosaicoSemaforo: React.FC<Props> = ({
             <Monitor className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900">Consola Mosaico Semáforo en Tiempo Real (CU21)</h3>
+            <h3 className="text-sm font-bold text-slate-900">Mosaico Semáforo en Tiempo Real</h3>
             <p className="text-xs text-slate-500">Watchdog automático a 15 segundos • 5 estados SST</p>
           </div>
         </div>

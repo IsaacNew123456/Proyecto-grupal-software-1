@@ -162,10 +162,10 @@ export const PaginaBitacoraAuditoria: React.FC = () => {
         <div>
           <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
             <Lock className="w-5 h-5 text-emerald-600" />
-            <span>Bitácora Inmutable de Auditoría (WORM)</span>
+            <span>Bitácora Inmutable de Auditoría</span>
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            Registro encadenado con SHA-256 (CU26): consulta, exportación CSV/JSON y verificación matemática no-repudio.
+            Registro encadenado con SHA-256: consulta, exportación CSV/JSON y verificación matemática de integridad.
           </p>
         </div>
 
@@ -267,9 +267,9 @@ export const PaginaBitacoraAuditoria: React.FC = () => {
               className="bg-slate-50 border border-slate-200 text-xs text-slate-700 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all cursor-pointer font-medium"
             >
               <option value="TODAS">Todas las categorías</option>
-              <option value="EVENTOS_TECNICOS">Eventos Técnicos (RF50)</option>
-              <option value="ACCESOS_DATOS">Accesos a Datos (RF50)</option>
-              <option value="CAMBIOS_POLITICAS">Cambios de Políticas (RF50)</option>
+              <option value="EVENTOS_TECNICOS">Eventos Técnicos</option>
+              <option value="ACCESOS_DATOS">Accesos a Datos</option>
+              <option value="CAMBIOS_POLITICAS">Cambios de Políticas</option>
               <option value="SEGURIDAD">Seguridad</option>
               <option value="AUDITORIA">Auditoría</option>
               <option value="SUPERVISION">Supervisión</option>
