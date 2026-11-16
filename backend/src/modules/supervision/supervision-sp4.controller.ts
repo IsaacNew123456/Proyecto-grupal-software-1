@@ -51,7 +51,11 @@ export class SupervisionSp4Controller {
   @Get('puestos-en-vivo')
   @ApiOperation({ summary: 'CU21 – Consultar puestos de monitoreo en tiempo real' })
   async listarPuestosEnVivo() {
-    return this.gateway.obtenerPuestos();
+    const puestos = this.gateway.obtenerPuestos();
+    if (puestos.length === 0) {
+      return this.gateway.cargarSesionesDesdeBaseDatos();
+    }
+    return puestos;
   }
 
   @Post('puestos-en-vivo/simular')
