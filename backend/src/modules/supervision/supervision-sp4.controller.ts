@@ -236,14 +236,39 @@ export class SupervisionSp4Controller {
 
   @Get('reportes/:sessionId/forense-pdf')
   @ApiOperation({ summary: 'CU25 – Descargar dictamen forense PDF con sello SHA-256' })
-  async descargarReportePdf(@Param('sessionId') sessionId: string, @Res() res: Response) {
+  async descargarReportePdf(
+    @Param('sessionId') sessionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @Res() res: Response,
+  ) {
     const session = await this.prisma.supervisionSession.findUnique({
       where: { id: sessionId },
-      include: { usuario: true, incidentes: true, eventosConducta: true },
+      include: {
+        usuario: true,
+        organizacion: true,
+        incidentes: { orderBy: { timestamp: 'asc' } },
+        eventosConducta: { orderBy: { timestamp: 'asc' } },
+        respuestasControl: { include: { pregunta: true } },
+      },
     });
     if (!session) throw new NotFoundException('Sesión de supervisión no encontrada');
 
     const buffer = await this.reportes.generarReporteForensePdf(session);
+
+    // Registrar auditoría de descarga en bitácora WORM (CU26 / Seguridad)
+    await this.bitacora.registrar({
+      userId: user.id,
+      action: 'EXPORTAR_REPORTE_FORENSE_PDF',
+      entity: 'SupervisionSession',
+      entityId: sessionId,
+      categoria: 'SEGURIDAD',
+      details: {
+        evaluadoId: session.userId,
+        scoreIntegridad: session.scoreIntegridad,
+        totalIncidentes: session.incidentes?.length || 0,
+      },
+    });
+
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="dictamen-forense-${sessionId.slice(0, 8)}.pdf"`);
     res.end(buffer);
