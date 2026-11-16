@@ -329,7 +329,15 @@ export const PaginaConsolaSupervision: React.FC = () => {
         {/* Línea de tiempo de incidentes correlacionados con explicabilidad (CU20 y CU22) */}
         {sessionIdAuditoria.trim() && (
           <div className="pt-2">
-            <LineaTiempoIncidentes sessionId={sessionIdAuditoria.trim()} />
+            <LineaTiempoIncidentes
+              sessionId={sessionIdAuditoria.trim()}
+              onIncidenteAuditado={() => {
+                api
+                  .get(`/supervision/indices/${sessionIdAuditoria.trim()}`)
+                  .then((res) => setIndices(res.data))
+                  .catch(() => {});
+              }}
+            />
           </div>
         )}
       </div>

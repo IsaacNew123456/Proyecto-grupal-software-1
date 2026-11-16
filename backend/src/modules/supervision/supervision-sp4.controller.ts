@@ -18,13 +18,20 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { ConsentGuard } from '../../common/guards/consent.guard';
 import { CurrentUser, AuthenticatedUser } from '../../common/decorators/current-user.decorator';
 import { PrismaService } from '../../prisma/prisma.service';
+import { IsString, IsNotEmpty, IsOptional, IsIn } from 'class-validator';
 import { MotorCorrelacionService } from './services/motor-correlacion.service';
 import { BitacoraInmutableService } from './services/bitacora-inmutable.service';
 import { GeneradorReportesService } from './services/generador-reportes.service';
 import { SupervisionGateway } from './gateways/supervision.gateway';
 
-class AuditarIncidenteDto {
+export class AuditarIncidenteDto {
+  @IsString()
+  @IsNotEmpty()
+  @IsIn(['CONFIRMADO', 'DESESTIMADO', 'FALSO_POSITIVO', 'VALIDADO'])
   estado: string;
+
+  @IsString()
+  @IsOptional()
   justificacion?: string;
 }
 
@@ -144,9 +151,10 @@ export class SupervisionSp4Controller {
     @Body() dto: AuditarIncidenteDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
+    const estadoNormalizado = dto.estado === 'VALIDADO' ? 'CONFIRMADO' : dto.estado;
     const resultado = await this.correlacion.auditarIncidente(
       incidentId,
-      dto.estado,
+      estadoNormalizado,
       dto.justificacion,
       user.id,
     );
@@ -157,7 +165,7 @@ export class SupervisionSp4Controller {
       entity: 'Incident',
       entityId: incidentId,
       categoria: 'AUDITORIA',
-      details: { estadoNuevo: dto.estado, justificacion: dto.justificacion },
+      details: { estadoNuevo: estadoNormalizado, justificacion: dto.justificacion },
     });
 
     return resultado;
