@@ -21,6 +21,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { MotorCorrelacionService } from './services/motor-correlacion.service';
 import { BitacoraInmutableService } from './services/bitacora-inmutable.service';
 import { GeneradorReportesService } from './services/generador-reportes.service';
+import { SupervisionGateway } from './gateways/supervision.gateway';
 
 class AuditarIncidenteDto {
   estado: string;
@@ -37,7 +38,20 @@ export class SupervisionSp4Controller {
     private readonly correlacion: MotorCorrelacionService,
     private readonly bitacora: BitacoraInmutableService,
     private readonly reportes: GeneradorReportesService,
+    private readonly gateway: SupervisionGateway,
   ) {}
+
+  @Get('puestos-en-vivo')
+  @ApiOperation({ summary: 'CU21 – Consultar puestos de monitoreo en tiempo real' })
+  async listarPuestosEnVivo() {
+    return this.gateway.obtenerPuestos();
+  }
+
+  @Post('puestos-en-vivo/simular')
+  @ApiOperation({ summary: 'CU21 – Simular 5 puestos en tiempo real para verificar el semáforo y watchdog' })
+  async simularPuestosEnVivo() {
+    return this.gateway.simularPuestosDemo();
+  }
 
   @Get('sesiones')
   @ApiOperation({ summary: 'CU20/CU21 – Listar sesiones de supervisión de la organización' })

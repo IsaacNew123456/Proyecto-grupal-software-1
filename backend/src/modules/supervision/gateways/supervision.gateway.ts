@@ -124,6 +124,77 @@ export class SupervisionGateway implements OnGatewayInit, OnGatewayConnection, O
     }
   }
 
+  public obtenerPuestos(): PuestoMonitoreo[] {
+    return Array.from(this.puestos.values());
+  }
+
+  public limpiarPuestos() {
+    this.puestos.clear();
+    this.emitirActualizacionPuestos();
+  }
+
+  public simularPuestosDemo(): PuestoMonitoreo[] {
+    const ahora = Date.now();
+    this.puestos.set('demo-puesto-1', {
+      sessionId: 'demo-puesto-1',
+      usuarioNombre: 'Carlos Mendoza (ErgoCheck)',
+      rol: 'EVALUADO',
+      tipo: 'TELETRABAJO',
+      estado: 'VERDE',
+      rulaScore: 2,
+      pitchEfectivo: -6.5,
+      ultimoHeartbeat: ahora,
+      motivoAlerta: 'Postura y ergonomía óptima',
+    });
+    this.puestos.set('demo-puesto-2', {
+      sessionId: 'demo-puesto-2',
+      usuarioNombre: 'Sofía Valenzuela',
+      rol: 'EVALUADO',
+      tipo: 'EXAMEN',
+      estado: 'AMARILLO',
+      rulaScore: 4,
+      pitchEfectivo: -26.0,
+      ultimoHeartbeat: ahora,
+      motivoAlerta: 'Desvío de mirada sostenido hacia fuera de pantalla',
+    });
+    this.puestos.set('demo-puesto-3', {
+      sessionId: 'demo-puesto-3',
+      usuarioNombre: 'Rodrigo Morales',
+      rol: 'EVALUADO',
+      tipo: 'TELETRABAJO',
+      estado: 'NARANJA',
+      rulaScore: 6,
+      pitchEfectivo: -38.2,
+      ultimoHeartbeat: ahora,
+      motivoAlerta: 'Riesgo ergonómico severo (RULA 6, flexión cervical > 35°)',
+    });
+    this.puestos.set('demo-puesto-4', {
+      sessionId: 'demo-puesto-4',
+      usuarioNombre: 'Martín Paredes',
+      rol: 'EVALUADO',
+      tipo: 'EXAMEN',
+      estado: 'ROJO',
+      rulaScore: 5,
+      pitchEfectivo: -12.0,
+      ultimoHeartbeat: ahora,
+      motivoAlerta: 'Anomalía crítica: Múltiples rostros detectados en cámara',
+    });
+    this.puestos.set('demo-puesto-5', {
+      sessionId: 'demo-puesto-5',
+      usuarioNombre: 'Lucía Fernández (Inactiva)',
+      rol: 'EVALUADO',
+      tipo: 'EXAMEN',
+      estado: 'GRIS',
+      rulaScore: 0,
+      pitchEfectivo: 0,
+      ultimoHeartbeat: ahora - 20000,
+      motivoAlerta: 'Conexión perdida (watchdog > 15s sin telemetría)',
+    });
+
+    this.emitirActualizacionPuestos();
+    return Array.from(this.puestos.values());
+  }
+
   private emitirActualizacionPuestos() {
     if (this.server) {
       this.server.emit('puestos_actualizados', Array.from(this.puestos.values()));

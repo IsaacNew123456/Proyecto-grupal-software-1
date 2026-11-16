@@ -9,6 +9,9 @@ import {
   User,
   Clock,
   Layers,
+  FileSpreadsheet,
+  FileText,
+  Download,
 } from 'lucide-react';
 import { ConsolaMosaicoSemaforo } from '../../features/supervision/components/ConsolaMosaicoSemaforo';
 import { LineaTiempoIncidentes } from '../../features/supervision/components/LineaTiempoIncidentes';
@@ -37,6 +40,8 @@ export const PaginaConsolaSupervision: React.FC = () => {
   const [correlacionando, setCorrelacionando] = useState(false);
   const [generandoDemo, setGenerandoDemo] = useState(false);
   const [mensajeExito, setMensajeExito] = useState<string | null>(null);
+  const [descargandoExcel, setDescargandoExcel] = useState(false);
+  const [descargandoPdf, setDescargandoPdf] = useState(false);
 
   const cargarSesiones = async () => {
     try {
@@ -89,6 +94,48 @@ export const PaginaConsolaSupervision: React.FC = () => {
       // Manejar error silencioso
     } finally {
       setGenerandoDemo(false);
+    }
+  };
+
+  const descargarExcel = async () => {
+    if (!sessionIdAuditoria) return;
+    setDescargandoExcel(true);
+    try {
+      const res = await api.get(`/supervision/reportes/${sessionIdAuditoria}/ergonomico-excel`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `reporte-ergonomico-${sessionIdAuditoria.slice(0, 8)}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch {
+      // Ignorar error
+    } finally {
+      setDescargandoExcel(false);
+    }
+  };
+
+  const descargarPdf = async () => {
+    if (!sessionIdAuditoria) return;
+    setDescargandoPdf(true);
+    try {
+      const res = await api.get(`/supervision/reportes/${sessionIdAuditoria}/forense-pdf`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `dictamen-forense-${sessionIdAuditoria.slice(0, 8)}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch {
+      // Ignorar error
+    } finally {
+      setDescargandoPdf(false);
     }
   };
 
@@ -238,6 +285,40 @@ export const PaginaConsolaSupervision: React.FC = () => {
                 <span className="text-[10px] text-slate-500 block uppercase font-mono">Clasificación SST</span>
                 <span className="font-mono text-emerald-400 text-xs font-semibold">{indices.estadoSST}</span>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Barra de Acciones de Reportes (CU24 y CU25) */}
+        {sessionIdAuditoria.trim() && (
+          <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-slate-950/70 border border-slate-800">
+            <div className="text-xs">
+              <span className="font-semibold text-slate-300 block">Reportes y Certificación de Sesión</span>
+              <span className="text-[10px] text-slate-500 font-mono">
+                Exportación oficial en Excel corporativo (CU24) y Dictamen Forense PDF con sello SHA-256 (CU25)
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={descargarExcel}
+                disabled={descargandoExcel}
+                className="px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-medium transition-all flex items-center gap-1.5 disabled:opacity-50"
+                title="Descargar matriz ergonómica y métricas RULA en Excel"
+              >
+                <FileSpreadsheet className={`w-3.5 h-3.5 ${descargandoExcel ? 'animate-spin' : ''}`} />
+                <span>{descargandoExcel ? 'Exportando...' : 'Reporte Ergonómico (.xlsx)'}</span>
+              </button>
+
+              <button
+                onClick={descargarPdf}
+                disabled={descargandoPdf}
+                className="px-3 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 text-xs font-medium transition-all flex items-center gap-1.5 disabled:opacity-50"
+                title="Descargar dictamen forense con sello criptográfico de integridad SHA-256"
+              >
+                <FileText className={`w-3.5 h-3.5 ${descargandoPdf ? 'animate-spin' : ''}`} />
+                <span>{descargandoPdf ? 'Generando PDF...' : 'Dictamen Forense SHA-256 (.pdf)'}</span>
+              </button>
             </div>
           </div>
         )}

@@ -2,12 +2,14 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from '../../../context/ContextoAutenticacion';
 
+export type EstadoSemaforo = 'VERDE' | 'AMARILLO' | 'NARANJA' | 'ROJO' | 'GRIS';
+
 export interface PuestoMonitoreo {
   sessionId: string;
   usuarioNombre: string;
   rol: string;
   tipo: string;
-  estado: 'VERDE' | 'AMARILLO' | 'NARANJA' | 'ROJO' | 'GRIS';
+  estado: EstadoSemaforo;
   rulaScore?: number;
   pitchEfectivo?: number;
   ultimoHeartbeat: number;
