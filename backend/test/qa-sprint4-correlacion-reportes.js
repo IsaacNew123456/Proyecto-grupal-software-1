@@ -62,34 +62,61 @@ async function runTests() {
   try {
     // 1. Autenticación como Administrador
     console.log('[QA 1/7] Autenticación administrativa JWT...');
-    const loginRes = await request('POST', '/auth/login', {
-      correo: 'admin@techcorp.com',
-      clave: 'Admin123!',
+    let loginRes = await request('POST', '/auth/login', {
+      correo: 'carlos.mendoza@visitask.com',
+      clave: '12345',
     });
 
     if (loginRes.status !== 200 || !loginRes.data.token) {
-      console.log('  (!) Admin no encontrado con clave estándar. Intentando con usuario demo...');
+      console.log('  (!) Intentando con superadmin...');
+      loginRes = await request('POST', '/auth/login', {
+        correo: 'manuela@gmail.com',
+        clave: '12345',
+      });
     }
     const token = loginRes.data.token;
     assert.ok(token, 'Debe obtener token JWT válido');
     console.log('  ✓ Autenticación exitosa (Token JWT emitido)');
 
+    // Asegurar consentimiento activo
+    await request('POST', '/consentimiento/aceptar', {
+      tipo: 'CAMERA_AND_BIOMETRICS',
+      version: '1.0',
+    }, token);
+
     // 2. Iniciar una sesión de prueba para generar telemetría
     console.log('\n[QA 2/7] Creación de sesión e inyección de eventos de telemetría...');
-    const sesionRes = await request('POST', '/supervision/sesiones/iniciar', { tipo: 'EXAMEN' }, token);
+    // Crear cuestionario para obtener código de acceso válido
+    const resCuestionario = await request('POST', '/supervision/cuestionarios', {
+      titulo: 'Examen de Certificación Scrum 2026 - QA Sprint 4',
+      tipo: 'EXAMEN',
+      urlExterna: 'https://docs.google.com/forms/d/e/1FAIpQLScMockTest/viewform',
+      duracionMinutos: 45,
+      vigenciaHoras: 12,
+    }, token);
+    assert.strictEqual(resCuestionario.status, 201, 'Debe crear cuestionario (201)');
+    const codigoAcceso = resCuestionario.data.codigoAcceso;
+    console.log(`  ✓ Cuestionario creado con código: ${codigoAcceso}`);
+
+    const sesionRes = await request('POST', '/supervision/sesion/iniciar', {
+      codigoAcceso,
+      tipo: 'EXAMEN',
+    }, token);
     assert.strictEqual(sesionRes.status, 201, 'Debe iniciar sesión de supervisión');
     const sessionId = sesionRes.data.id;
     console.log(`  ✓ Sesión iniciada: ${sessionId}`);
 
     // Inyectar eventos de conducta para activar reglas del motor
-    await request('POST', `/supervision/sesiones/${sessionId}/eventos`, {
+    await request('POST', `/supervision/sesion/${sessionId}/evento`, {
       tipo: 'GAZE_DOWN_SUSTAINED',
       duracionMs: 4200,
+      severidad: 'HIGH',
       detalles: { pitch: -35, yaw: 2, rulaScore: 4 },
     }, token);
-    await request('POST', `/supervision/sesiones/${sessionId}/eventos`, {
+    await request('POST', `/supervision/sesion/${sessionId}/evento`, {
       tipo: 'GAZE_DOWN_SUSTAINED',
       duracionMs: 3800,
+      severidad: 'HIGH',
       detalles: { pitch: -32, yaw: 1, rulaScore: 4 },
     }, token);
     console.log('  ✓ Eventos de conducta inyectados exitosamente');

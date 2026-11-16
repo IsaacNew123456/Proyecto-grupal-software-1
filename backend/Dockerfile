@@ -1,0 +1,51 @@
+# ==========================================
+# ETAPA 1: Construcción y Compilación (Builder)
+# ==========================================
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Instalar dependencias del sistema requeridas para Prisma y compilación
+RUN apk add --no-cache openssl
+
+# Copiar manifiestos y esquema de base de datos
+COPY package*.json ./
+COPY prisma ./prisma/
+
+# Instalar dependencias completas y generar cliente Prisma
+RUN npm ci
+RUN npx prisma generate
+
+# Copiar código fuente y compilar
+COPY . .
+RUN npm run build
+
+# Purgar dependencias de desarrollo conservando cliente Prisma generado
+RUN npm prune --production
+
+# ==========================================
+# ETAPA 2: Entorno de Ejecución (Runner)
+# ==========================================
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+# Dependencias mínimas de sistema para producción
+RUN apk add --no-cache openssl dumb-init
+
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Usuario no root por seguridad
+USER node
+
+# Copiar únicamente artefactos necesarios de la etapa anterior
+COPY --chown=node:node --from=builder /app/package*.json ./
+COPY --chown=node:node --from=builder /app/node_modules ./node_modules
+COPY --chown=node:node --from=builder /app/dist ./dist
+COPY --chown=node:node --from=builder /app/prisma ./prisma
+
+EXPOSE 3000
+
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "dist/main.js"]
