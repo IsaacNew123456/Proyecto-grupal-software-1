@@ -122,9 +122,32 @@ export class SupervisionSp4Controller {
   }
 
   @Get('bitacora')
-  @ApiOperation({ summary: 'CU26 – Consultar bitácora WORM inmutable' })
-  async consultarBitacora(@Query('categoria') categoria?: string, @Query('limit') limit?: string) {
-    return this.bitacora.consultarRegistros(categoria, limit ? parseInt(limit, 10) : 50);
+  @ApiOperation({ summary: 'CU26 – Consultar bitácora WORM inmutable con filtros avanzados' })
+  async consultarBitacora(
+    @Query('categoria') categoria?: string,
+    @Query('accion') accion?: string,
+    @Query('busqueda') busqueda?: string,
+    @Query('fechaInicio') fechaInicio?: string,
+    @Query('fechaFin') fechaFin?: string,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
+  ) {
+    const res = await this.bitacora.consultarRegistros({
+      categoria,
+      accion,
+      busqueda,
+      fechaInicio,
+      fechaFin,
+      limit: limit ? parseInt(limit, 10) : 50,
+      offset: offset ? parseInt(offset, 10) : 0,
+    });
+    return res;
+  }
+
+  @Get('bitacora/estadisticas')
+  @ApiOperation({ summary: 'CU26 – Estadísticas y métricas de la bitácora WORM' })
+  async obtenerEstadisticas() {
+    return this.bitacora.obtenerEstadisticas();
   }
 
   @Get('bitacora/verificar')
@@ -135,10 +158,19 @@ export class SupervisionSp4Controller {
 
   @Get('bitacora/exportar')
   @ApiOperation({ summary: 'CU26 – Exportar registros WORM a CSV' })
-  async exportarCsv(@Res() res: Response) {
-    const csv = await this.bitacora.exportarCsv();
+  async exportarCsv(@Query('categoria') categoria?: string, @Res() res?: Response) {
+    const csv = await this.bitacora.exportarCsv(categoria);
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', 'attachment; filename="bitacora-inmutable-worm.csv"');
     res.send(csv);
+  }
+
+  @Get('bitacora/exportar-json')
+  @ApiOperation({ summary: 'CU26 – Exportar registros WORM con metadata criptográfica a JSON' })
+  async exportarJson(@Query('categoria') categoria?: string, @Res() res?: Response) {
+    const json = await this.bitacora.exportarJson(categoria);
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="bitacora-inmutable-worm.json"');
+    res.send(JSON.stringify(json, null, 2));
   }
 }
