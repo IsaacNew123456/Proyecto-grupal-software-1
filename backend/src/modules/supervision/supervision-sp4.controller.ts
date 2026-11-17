@@ -14,6 +14,7 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { ConsentGuard } from '../../common/guards/consent.guard';
 import { CurrentUser, AuthenticatedUser } from '../../common/decorators/current-user.decorator';

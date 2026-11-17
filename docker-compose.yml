@@ -1,0 +1,71 @@
+services:
+  # ==========================================
+  # 1. Base de Datos Relacional PostgreSQL
+  # ==========================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: ergocheck-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgrespassword}
+      POSTGRES_DB: ${DB_NAME:-ergocheck_db}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-ergocheck_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ergocheck-network
+
+  # ==========================================
+  # 2. Backend NestJS (API & WebSockets)
+  # ==========================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ergocheck-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgrespassword@postgres:5432/ergocheck_db?schema=public}
+      JWT_SECRET: ${JWT_SECRET:-ergocheck-ai-secure-jwt-secret-key-2026-uagrm}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      PORT: 3000
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    networks:
+      - ergocheck-network
+
+  # ==========================================
+  # 3. Frontend Web (React 19 + Nginx)
+  # ==========================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ergocheck-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+      - "5173:80"
+    networks:
+      - ergocheck-network
+
+networks:
+  ergocheck-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local

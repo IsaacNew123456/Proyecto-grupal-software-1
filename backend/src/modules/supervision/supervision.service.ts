@@ -261,4 +261,12 @@ export class SupervisionService {
     if (!sesion) throw new NotFoundException('Sesión no encontrada.');
     return sesion;
   }
+
+  async listarSesionesTeletrabajo(userId: string, organizationId: string) {
+    return this.prisma.supervisionSession.findMany({
+      where: { userId, organizationId, tipo: 'TELETRABAJO' },
+      orderBy: { inicio: 'desc' },
+      take: 50,
+    });
+  }
 }

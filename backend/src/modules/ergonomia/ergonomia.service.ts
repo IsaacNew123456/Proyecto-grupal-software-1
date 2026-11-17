@@ -88,7 +88,7 @@ export class ErgonomiaService {
     const sesiones = await this.prisma.ergonomicSession.findMany({
       where: { userId },
       orderBy: { startTime: 'desc' },
-      take: 10,
+      take: 50,
     });
 
     const totalSesiones = sesiones.length;

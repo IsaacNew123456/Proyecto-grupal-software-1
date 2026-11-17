@@ -75,6 +75,11 @@ export class SupervisionController {
     return this.supervisionService.finalizarSesion(id, user.id, dto);
   }
 
+  @Get('sesiones/teletrabajo')
+  async listarSesionesTeletrabajo(@CurrentUser() user: AuthenticatedUser) {
+    return this.supervisionService.listarSesionesTeletrabajo(user.id, user.organizationId);
+  }
+
   @Get('sesion/:id')
   async obtenerSesion(
     @CurrentUser() user: AuthenticatedUser,
