@@ -360,37 +360,93 @@ export const PaginaConsolaSupervision: React.FC = () => {
             )}
           </div>
 
-          {/* Tarjetas de Métricas e Índices Sintéticos */}
+          {/* Tarjetas de Métricas e Índices Sintéticos con Semáforo Dinámico */}
           {indices && (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shrink-0">
+                <div
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+                    indices.indiceIntegridad >= 80
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-600'
+                      : indices.indiceIntegridad >= 50
+                      ? 'bg-amber-50 border-amber-200 text-amber-600'
+                      : 'bg-rose-50 border-rose-200 text-rose-600'
+                  }`}
+                >
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-400 block uppercase font-mono font-semibold">Índice de Integridad</span>
-                  <span className="font-mono font-bold text-slate-900 text-lg leading-tight">{indices.indiceIntegridad} / 100</span>
+                  <span
+                    className={`font-mono font-bold text-lg leading-tight ${
+                      indices.indiceIntegridad >= 80
+                        ? 'text-emerald-700'
+                        : indices.indiceIntegridad >= 50
+                        ? 'text-amber-700'
+                        : 'text-rose-700'
+                    }`}
+                  >
+                    {indices.indiceIntegridad} / 100
+                  </span>
                 </div>
               </div>
 
               <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-sky-50 border border-sky-200 flex items-center justify-center text-sky-600 shrink-0">
+                <div
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+                    indices.indiceBienestar >= 80
+                      ? 'bg-sky-50 border-sky-200 text-sky-600'
+                      : indices.indiceBienestar >= 60
+                      ? 'bg-amber-50 border-amber-200 text-amber-600'
+                      : 'bg-rose-50 border-rose-200 text-rose-600'
+                  }`}
+                >
                   <Activity className="w-5 h-5" />
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-400 block uppercase font-mono font-semibold">Bienestar Ergonómico</span>
-                  <span className="font-mono font-bold text-slate-900 text-lg leading-tight">{indices.indiceBienestar} / 100</span>
+                  <span
+                    className={`font-mono font-bold text-lg leading-tight ${
+                      indices.indiceBienestar >= 80
+                        ? 'text-sky-700'
+                        : indices.indiceBienestar >= 60
+                        ? 'text-amber-700'
+                        : 'text-rose-700'
+                    }`}
+                  >
+                    {indices.indiceBienestar} / 100
+                  </span>
                 </div>
               </div>
 
               <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex items-center justify-between">
                 <div className="flex items-center gap-3.5">
-                  <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 shrink-0">
+                  <div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+                      indices.totalIncidentes === 0
+                        ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                        : indices.totalIncidentes <= 3
+                        ? 'bg-amber-50 border-amber-200 text-amber-700'
+                        : 'bg-rose-50 border-rose-200 text-rose-700'
+                    }`}
+                  >
                     <span className="font-mono font-bold text-sm">{indices.totalIncidentes}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 block uppercase font-mono font-semibold">Clasificación SST</span>
-                    <span className="font-mono text-emerald-700 text-sm font-bold block">{indices.estadoSST}</span>
+                    <span className="text-[10px] text-slate-400 block uppercase font-mono font-semibold">
+                      Clasificación SST ({indices.totalIncidentes} incidentes)
+                    </span>
+                    <span
+                      className={`font-mono text-sm font-bold block ${
+                        indices.estadoSST === 'OPTIMO'
+                          ? 'text-emerald-700'
+                          : indices.estadoSST === 'MODERADO'
+                          ? 'text-amber-700'
+                          : 'text-rose-700'
+                      }`}
+                    >
+                      {indices.estadoSST}
+                    </span>
                   </div>
                 </div>
 
