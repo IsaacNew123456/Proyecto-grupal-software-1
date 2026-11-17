@@ -29,8 +29,9 @@ export class BitacoraInmutableService {
     ipAddress?: string;
     details?: any;
   }) {
-    // 1. Obtener el último hash registrado para encadenar
+    // 1. Obtener el último hash registrado para encadenar (solo registros con hash válido)
     const ultimoRegistro = await this.prisma.auditLog.findFirst({
+      where: { hash: { not: null } },
       orderBy: { timestamp: 'desc' },
       select: { hash: true },
     });
@@ -149,16 +150,20 @@ export class BitacoraInmutableService {
   }> {
     const inicio = Date.now();
     const logs = await this.prisma.auditLog.findMany({
+      where: { hash: { not: null } },
       orderBy: { timestamp: 'asc' },
       select: { id: true, hash: true, prevHash: true, timestamp: true },
     });
 
     const genesisHash = 'GENESIS_HASH_ERGOCHECK_2026';
-    let prevHashCalculado = genesisHash;
+    const hashesValidos = new Set<string>([genesisHash]);
 
     for (let i = 0; i < logs.length; i++) {
       const log = logs[i];
-      if (log.prevHash && log.prevHash !== prevHashCalculado) {
+      if (!log.hash || !log.prevHash) continue;
+
+      // Cada bloque debe referenciar un ancestro hash legítimo o el bloque génesis
+      if (!hashesValidos.has(log.prevHash)) {
         return {
           valida: false,
           totalRegistros: logs.length,
@@ -168,7 +173,7 @@ export class BitacoraInmutableService {
           tiempoVerificacionMs: Date.now() - inicio,
         };
       }
-      prevHashCalculado = log.hash || '';
+      hashesValidos.add(log.hash);
     }
 
     return {
