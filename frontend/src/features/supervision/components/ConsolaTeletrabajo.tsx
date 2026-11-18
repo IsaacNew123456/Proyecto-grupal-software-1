@@ -122,7 +122,7 @@ export const ConsolaTeletrabajo: React.FC = () => {
     setDescansoActivo(null);
   }, [descansoActivo]);
 
-  const handleCambioPresencia = (nuevoEstado: EstadoPresencia) => {
+  const handleCambioPresencia = useCallback((nuevoEstado: EstadoPresencia) => {
     setEstadoPresencia(nuevoEstado);
     if (!sessionId) return;
     if (nuevoEstado === 'AUSENTE' || nuevoEstado === 'MULTIPLE') {
@@ -133,7 +133,7 @@ export const ConsolaTeletrabajo: React.FC = () => {
         detalles: { modulo: 'TELETRABAJO' },
       }).catch(() => {});
     }
-  };
+  }, [sessionId]);
 
   return (
     <div className="space-y-6">

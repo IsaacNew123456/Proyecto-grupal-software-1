@@ -64,6 +64,11 @@ export const VisorSupervisionExamen: React.FC<Props> = ({
     },
   );
 
+  const procesarMuestraBlendshapesRef = useRef(procesarMuestraBlendshapes);
+  useEffect(() => {
+    procesarMuestraBlendshapesRef.current = procesarMuestraBlendshapes;
+  });
+
   useEffect(() => {
     const timer = setInterval(() => {
       setSegundosRestantes((prev) => {
@@ -134,7 +139,7 @@ export const VisorSupervisionExamen: React.FC<Props> = ({
                 for (const cat of blendshapes[0].categories) {
                   mapBlend[cat.categoryName] = cat.score;
                 }
-                procesarMuestraBlendshapes(mapBlend);
+                procesarMuestraBlendshapesRef.current(mapBlend);
               }
             }
           }
@@ -153,7 +158,7 @@ export const VisorSupervisionExamen: React.FC<Props> = ({
       if (stream) stream.getTracks().forEach((t) => t.stop());
       reiniciarDetectorFacial();
     };
-  }, [sessionId, procesarMuestraBlendshapes]);
+  }, [sessionId]);
 
   const minutos = Math.floor(segundosRestantes / 60);
   const segundos = segundosRestantes % 60;

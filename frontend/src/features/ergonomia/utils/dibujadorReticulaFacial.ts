@@ -8,8 +8,12 @@ export function dibujarReticulaFacialDinamica(
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
-  canvas.width = canvas.clientWidth || 320;
-  canvas.height = canvas.clientHeight || 240;
+  const targetW = canvas.clientWidth || 320;
+  const targetH = canvas.clientHeight || 240;
+  if (canvas.width !== targetW || canvas.height !== targetH) {
+    canvas.width = targetW;
+    canvas.height = targetH;
+  }
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   if (!diag || !diag.hayPersona || diag.camaraTapada) {
