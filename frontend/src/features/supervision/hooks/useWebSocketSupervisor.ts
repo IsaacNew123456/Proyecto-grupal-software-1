@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from '../../../context/ContextoAutenticacion';
+import { api } from '../../../api/client';
 
 export type EstadoSemaforo = 'VERDE' | 'AMARILLO' | 'NARANJA' | 'ROJO' | 'GRIS';
 
@@ -26,6 +27,15 @@ export function useWebSocketSupervisor() {
   useEffect(() => {
     // Si no hay token, no intentamos conectar
     if (!token) return;
+
+    // Cargar puestos iniciales persistidos en PostgreSQL
+    api.get('/supervision/puestos-en-vivo')
+      .then((res) => {
+        if (Array.isArray(res.data) && res.data.length > 0) {
+          setPuestos(res.data);
+        }
+      })
+      .catch(() => {});
 
     const socketUrl = window.location.origin;
     const socket = io(`${socketUrl}/supervision`, {

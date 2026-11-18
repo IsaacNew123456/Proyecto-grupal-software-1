@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Monitor,
   ShieldCheck,
@@ -13,6 +14,7 @@ import {
   FileText,
   Download,
   CheckCircle,
+  ArrowRight,
 } from 'lucide-react';
 import { ConsolaMosaicoSemaforo } from '../../features/supervision/components/ConsolaMosaicoSemaforo';
 import { LineaTiempoIncidentes } from '../../features/supervision/components/LineaTiempoIncidentes';
@@ -35,6 +37,8 @@ interface SesionResumen {
 }
 
 export const PaginaConsolaSupervision: React.FC = () => {
+  const navigate = useNavigate();
+  const [pestañaActiva, setPestañaActiva] = useState<'mosaico' | 'forense'>('mosaico');
   const [sesiones, setSesiones] = useState<SesionResumen[]>([]);
   const [sessionIdAuditoria, setSessionIdAuditoria] = useState('');
   const [indices, setIndices] = useState<any | null>(null);
@@ -71,7 +75,7 @@ export const PaginaConsolaSupervision: React.FC = () => {
       const resIndices = await api.get(`/supervision/indices/${sid}`);
       setIndices(resIndices.data);
       setMensajeExito(
-        `Motor CU20 ejecutado con éxito: ${resCorrelacion.data.total} incidentes correlacionados mediante ventanas deslizantes.`,
+        `Motor de correlación ejecutado con éxito: ${resCorrelacion.data.total} incidentes correlacionados mediante ventanas deslizantes.`,
       );
     } catch {
       // Ignorar
@@ -87,10 +91,11 @@ export const PaginaConsolaSupervision: React.FC = () => {
       const res = await api.post('/supervision/sesiones/demo');
       const nuevaId = res.data.sessionId;
       setSessionIdAuditoria(nuevaId);
+      setPestañaActiva('forense');
       await cargarSesiones();
       await ejecutarCorrelacion(nuevaId);
       setMensajeExito(
-        '¡Sesión demo generada y correlacionada! Se inyectaron 10 eventos biométricos y se ejecutaron las reglas CU20.',
+        '¡Sesión demo generada y correlacionada! Se inyectaron 10 eventos biométricos y se ejecutaron las reglas de correlación.',
       );
     } catch {
       // Manejar error silencioso
@@ -149,7 +154,7 @@ export const PaginaConsolaSupervision: React.FC = () => {
       const res = await api.post(`/supervision/sesiones/${sessionIdAuditoria}/cerrar`);
       setIndices(res.data.indices);
       setMensajeExito(
-        `Sesión cerrada formalmente (CU23). Índice de Integridad persistido: ${res.data.indices.indiceIntegridad}/100.`,
+        `Sesión cerrada formalmente. Índice de Integridad persistido: ${res.data.indices.indiceIntegridad}/100.`,
       );
       await cargarSesiones();
     } catch {
@@ -173,204 +178,306 @@ export const PaginaConsolaSupervision: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Encabezado */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
-          <h2 className="text-xl font-bold text-slate-100 tracking-tight flex items-center gap-2">
-            <Monitor className="w-5 h-5 text-emerald-400" />
+          <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+            <Monitor className="w-5 h-5 text-emerald-600" />
             <span>Consola de Supervisión en Tiempo Real</span>
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
-            Mosaico semáforo SST (CU21) y Motor de Correlación de reglas sobre ventanas deslizantes de 60s (CU20)
+          <p className="text-xs text-slate-500 mt-1">
+            Supervisión ergonómica continua y detección de anomalías en tiempo real
           </p>
         </div>
 
         <button
           onClick={generarSesionDemo}
           disabled={generandoDemo}
-          className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-500/20 to-sky-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold hover:border-emerald-400 transition-all flex items-center gap-1.5 shadow-sm"
+          className="px-3.5 py-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold hover:bg-emerald-100 transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
           title="Genera una sesión de prueba con eventos de postura, mirada y atajos para probar el motor"
         >
-          <Sparkles className={`w-3.5 h-3.5 text-emerald-400 ${generandoDemo ? 'animate-spin' : ''}`} />
-          <span>{generandoDemo ? 'Generando...' : 'Generar Sesión Demo con Eventos (CU20)'}</span>
+          <Sparkles className={`w-3.5 h-3.5 text-emerald-600 ${generandoDemo ? 'animate-spin' : ''}`} />
+          <span>{generandoDemo ? 'Generando...' : 'Generar Sesión Demo con Eventos'}</span>
         </button>
       </div>
 
-      {/* Mosaico de puestos en vivo (CU21) */}
-      <ConsolaMosaicoSemaforo
-        onSeleccionarSesion={(sid) => setSessionIdAuditoria(sid)}
-        sesionSeleccionadaId={sessionIdAuditoria}
-      />
+      {/* Selector de Pestañas / Separación de Casos de Uso */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-slate-200">
+        <button
+          onClick={() => setPestañaActiva('mosaico')}
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
+            pestañaActiva === 'mosaico'
+              ? 'border-emerald-600 text-emerald-700 bg-emerald-50/50'
+              : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
+          }`}
+        >
+          <Monitor className="w-4 h-4" />
+          <span>Mosaico Semáforo en Tiempo Real</span>
+        </button>
 
-      {/* Panel de correlación multidimensional (CU20) y auditoría (CU22) */}
-      <div className="rounded-2xl bg-slate-900/40 border border-slate-800 p-5 space-y-4 shadow-sm">
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-          <div>
-            <h3 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span>Motor de Correlación Multidimensional (CU20)</span>
-            </h3>
-            <p className="text-[11px] text-slate-400 font-mono mt-0.5">
-              Cruza postura RULA, vector de mirada y eventos en ventanas deslizantes para calificar severidad forense
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
-            {/* Selector de Sesiones */}
-            <select
-              value={sessionIdAuditoria}
-              onChange={(e) => setSessionIdAuditoria(e.target.value)}
-              className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 focus:outline-none focus:border-emerald-500 min-w-[240px]"
-            >
-              <option value="">Seleccione una sesión...</option>
-              {sesiones.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.usuario ? `${s.usuario.nombre} (${s.tipo})` : `Sesión ${s.id.slice(0, 8)}`} — {new Date(s.inicio).toLocaleTimeString()}
-                </option>
-              ))}
-            </select>
-
-            <button
-              onClick={() => cargarSesiones()}
-              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 transition-colors"
-              title="Refrescar lista de sesiones"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-            </button>
-
-            <button
-              onClick={() => ejecutarCorrelacion()}
-              disabled={correlacionando || !sessionIdAuditoria.trim()}
-              className="px-3.5 py-2 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs hover:bg-emerald-400 transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-40"
-            >
-              <PlayCircle className={`w-3.5 h-3.5 ${correlacionando ? 'animate-spin' : ''}`} />
-              <span>{correlacionando ? 'Evaluando...' : 'Correlación (CU20)'}</span>
-            </button>
-
-            <button
-              onClick={() => cerrarSesionActual()}
-              disabled={cerrandoSesion || !sessionIdAuditoria.trim()}
-              className="px-3.5 py-2 rounded-xl bg-slate-800 text-slate-200 hover:text-white hover:bg-slate-700 border border-slate-700 font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-40"
-              title="Cierra formalmente la sesión y persiste los índices sintéticos de integridad y bienestar (CU23)"
-            >
-              <CheckCircle className={`w-3.5 h-3.5 text-emerald-400 ${cerrandoSesion ? 'animate-spin' : ''}`} />
-              <span>{cerrandoSesion ? 'Cerrando...' : 'Cerrar Sesión (CU23)'}</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Mensaje de éxito de la correlación */}
-        {mensajeExito && (
-          <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span>{mensajeExito}</span>
-          </div>
-        )}
-
-        {/* Metadatos de la sesión activa */}
-        {sesionActual && (
-          <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400 p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80 font-mono">
-            <span className="flex items-center gap-1.5 text-slate-200">
-              <User className="w-3.5 h-3.5 text-emerald-400" />
-              {sesionActual.usuario ? `${sesionActual.usuario.nombre} ${sesionActual.usuario.apellido}` : 'Usuario Demo'}
+        <button
+          onClick={() => setPestañaActiva('forense')}
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
+            pestañaActiva === 'forense'
+              ? 'border-emerald-600 text-emerald-700 bg-emerald-50/50'
+              : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
+          }`}
+        >
+          <ShieldCheck className="w-4 h-4" />
+          <span>Análisis y Correlación Forense</span>
+          {sessionIdAuditoria && (
+            <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-mono bg-slate-100 text-slate-600 border border-slate-200">
+              Sesión activa
             </span>
-            <span className="flex items-center gap-1 text-slate-400">
-              <Layers className="w-3 h-3 text-sky-400" />
-              Tipo: {sesionActual.tipo}
-            </span>
-            <span className="flex items-center gap-1 text-slate-400">
-              <Clock className="w-3 h-3 text-amber-400" />
-              {new Date(sesionActual.inicio).toLocaleString()}
-            </span>
-            <span className="ml-auto text-emerald-400 font-semibold">
-              ID: {sesionActual.id.slice(0, 12)}...
-            </span>
-          </div>
-        )}
+          )}
+        </button>
 
-        {/* Índices Sintéticos (CU23) */}
-        {indices && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-                <ShieldCheck className="w-4 h-4" />
-              </div>
-              <div>
-                <span className="text-[10px] text-slate-500 block uppercase font-mono">Índice de Integridad</span>
-                <span className="font-mono font-bold text-white text-base">{indices.indiceIntegridad} / 100</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
-                <Activity className="w-4 h-4" />
-              </div>
-              <div>
-                <span className="text-[10px] text-slate-500 block uppercase font-mono">Bienestar Ergonómico</span>
-                <span className="font-mono font-bold text-white text-base">{indices.indiceBienestar} / 100</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300">
-                <span className="font-mono font-bold text-sm text-amber-400">{indices.totalIncidentes}</span>
-              </div>
-              <div>
-                <span className="text-[10px] text-slate-500 block uppercase font-mono">Clasificación SST</span>
-                <span className="font-mono text-emerald-400 text-xs font-semibold">{indices.estadoSST}</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Barra de Acciones de Reportes (CU24 y CU25) */}
-        {sessionIdAuditoria.trim() && (
-          <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-slate-950/70 border border-slate-800">
-            <div className="text-xs">
-              <span className="font-semibold text-slate-300 block">Reportes y Certificación de Sesión</span>
-              <span className="text-[10px] text-slate-500 font-mono">
-                Exportación oficial en Excel corporativo (CU24) y Dictamen Forense PDF con sello SHA-256 (CU25)
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={descargarExcel}
-                disabled={descargandoExcel}
-                className="px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-medium transition-all flex items-center gap-1.5 disabled:opacity-50"
-                title="Descargar matriz ergonómica y métricas RULA en Excel"
-              >
-                <FileSpreadsheet className={`w-3.5 h-3.5 ${descargandoExcel ? 'animate-spin' : ''}`} />
-                <span>{descargandoExcel ? 'Exportando...' : 'Reporte Ergonómico (.xlsx)'}</span>
-              </button>
-
-              <button
-                onClick={descargarPdf}
-                disabled={descargandoPdf}
-                className="px-3 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 text-xs font-medium transition-all flex items-center gap-1.5 disabled:opacity-50"
-                title="Descargar dictamen forense con sello criptográfico de integridad SHA-256"
-              >
-                <FileText className={`w-3.5 h-3.5 ${descargandoPdf ? 'animate-spin' : ''}`} />
-                <span>{descargandoPdf ? 'Generando PDF...' : 'Dictamen Forense SHA-256 (.pdf)'}</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Línea de tiempo de incidentes correlacionados con explicabilidad (CU20 y CU22) */}
-        {sessionIdAuditoria.trim() && (
-          <div className="pt-2">
-            <LineaTiempoIncidentes
-              sessionId={sessionIdAuditoria.trim()}
-              onIncidenteAuditado={() => {
-                api
-                  .get(`/supervision/indices/${sessionIdAuditoria.trim()}`)
-                  .then((res) => setIndices(res.data))
-                  .catch(() => {});
-              }}
-            />
-          </div>
-        )}
+        <button
+          onClick={() => navigate(sessionIdAuditoria ? `/reportes?sessionId=${sessionIdAuditoria}` : '/reportes')}
+          className="ml-auto hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-slate-200 text-xs font-medium transition-all shadow-2xs cursor-pointer"
+        >
+          <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+          <span>Centro de Reportes</span>
+          <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+        </button>
       </div>
+
+      {/* PESTAÑA 1: Mosaico Semáforo en Vivo */}
+      {pestañaActiva === 'mosaico' && (
+        <div className="space-y-4">
+          <ConsolaMosaicoSemaforo
+            onSeleccionarSesion={(sid) => {
+              setSessionIdAuditoria(sid);
+              setPestañaActiva('forense');
+            }}
+            sesionSeleccionadaId={sessionIdAuditoria}
+          />
+        </div>
+      )}
+
+      {/* PESTAÑA 2: Panel de Correlación Forense */}
+      {pestañaActiva === 'forense' && (
+        <div className="space-y-4">
+          {/* Tarjeta de Control y Selección de Sesión */}
+          <div className="rounded-2xl bg-white border border-slate-200/90 p-5 shadow-xs">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+              {/* Información del Evaluado / Sesión Activa */}
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 font-bold text-sm shrink-0 shadow-2xs">
+                  {sesionActual?.usuario
+                    ? `${sesionActual.usuario.nombre[0]}${sesionActual.usuario.apellido[0]}`
+                    : 'EC'}
+                </div>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-base font-bold text-slate-900">
+                      {sesionActual?.usuario
+                        ? `${sesionActual.usuario.nombre} ${sesionActual.usuario.apellido}`
+                        : 'Sesión de Supervisión'}
+                    </h3>
+                    {sesionActual && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        {sesionActual.tipo}
+                      </span>
+                    )}
+                    {sesionActual?.estado && (
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold ${
+                          sesionActual.estado === 'COMPLETADA'
+                            ? 'bg-slate-100 text-slate-600 border border-slate-200'
+                            : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        }`}
+                      >
+                        {sesionActual.estado}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 font-mono mt-1">
+                    {sesionActual?.inicio && (
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-slate-400" />
+                        {new Date(sesionActual.inicio).toLocaleString()}
+                      </span>
+                    )}
+                    {sesionActual?.id && (
+                      <span className="text-slate-400">
+                        ID: {sesionActual.id.slice(0, 8)}...
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Selector y Botones de Acción */}
+              <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto justify-start lg:justify-end">
+                <select
+                  value={sessionIdAuditoria}
+                  onChange={(e) => setSessionIdAuditoria(e.target.value)}
+                  className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-700 focus:outline-none focus:border-emerald-500 focus:bg-white min-w-[200px] cursor-pointer"
+                >
+                  <option value="">Seleccione una sesión...</option>
+                  {sesiones.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.usuario ? `${s.usuario.nombre} (${s.tipo})` : `Sesión ${s.id.slice(0, 8)}`} — {new Date(s.inicio).toLocaleTimeString()}
+                    </option>
+                  ))}
+                </select>
+
+                <button
+                  onClick={() => cargarSesiones()}
+                  className="p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
+                  title="Refrescar lista de sesiones"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                </button>
+
+                <button
+                  onClick={() => ejecutarCorrelacion()}
+                  disabled={correlacionando || !sessionIdAuditoria.trim()}
+                  className="px-3.5 py-2 rounded-xl bg-emerald-600 text-white font-semibold text-xs hover:bg-emerald-700 transition-all flex items-center gap-1.5 shadow-2xs disabled:opacity-40 cursor-pointer"
+                >
+                  <PlayCircle className={`w-3.5 h-3.5 ${correlacionando ? 'animate-spin' : ''}`} />
+                  <span>{correlacionando ? 'Evaluando...' : 'Ejecutar Correlación'}</span>
+                </button>
+
+                <button
+                  onClick={() => cerrarSesionActual()}
+                  disabled={cerrandoSesion || !sessionIdAuditoria.trim()}
+                  className="px-3.5 py-2 rounded-xl bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 font-semibold text-xs transition-all flex items-center gap-1.5 shadow-2xs disabled:opacity-40 cursor-pointer"
+                  title="Cierra formalmente la sesión y persiste los índices sintéticos de integridad y bienestar"
+                >
+                  <CheckCircle className={`w-3.5 h-3.5 text-emerald-600 ${cerrandoSesion ? 'animate-spin' : ''}`} />
+                  <span>{cerrandoSesion ? 'Cerrando...' : 'Cerrar Sesión'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Mensaje de éxito de la correlación */}
+            {mensajeExito && (
+              <div className="mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{mensajeExito}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Tarjetas de Métricas e Índices Sintéticos con Semáforo Dinámico */}
+          {indices && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex items-center gap-3.5">
+                <div
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+                    indices.indiceIntegridad >= 80
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-600'
+                      : indices.indiceIntegridad >= 50
+                      ? 'bg-amber-50 border-amber-200 text-amber-600'
+                      : 'bg-rose-50 border-rose-200 text-rose-600'
+                  }`}
+                >
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 block uppercase font-mono font-semibold">Índice de Integridad</span>
+                  <span
+                    className={`font-mono font-bold text-lg leading-tight ${
+                      indices.indiceIntegridad >= 80
+                        ? 'text-emerald-700'
+                        : indices.indiceIntegridad >= 50
+                        ? 'text-amber-700'
+                        : 'text-rose-700'
+                    }`}
+                  >
+                    {indices.indiceIntegridad} / 100
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex items-center gap-3.5">
+                <div
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+                    indices.indiceBienestar >= 80
+                      ? 'bg-sky-50 border-sky-200 text-sky-600'
+                      : indices.indiceBienestar >= 60
+                      ? 'bg-amber-50 border-amber-200 text-amber-600'
+                      : 'bg-rose-50 border-rose-200 text-rose-600'
+                  }`}
+                >
+                  <Activity className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 block uppercase font-mono font-semibold">Bienestar Ergonómico</span>
+                  <span
+                    className={`font-mono font-bold text-lg leading-tight ${
+                      indices.indiceBienestar >= 80
+                        ? 'text-sky-700'
+                        : indices.indiceBienestar >= 60
+                        ? 'text-amber-700'
+                        : 'text-rose-700'
+                    }`}
+                  >
+                    {indices.indiceBienestar} / 100
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex items-center justify-between">
+                <div className="flex items-center gap-3.5">
+                  <div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+                      indices.totalIncidentes === 0
+                        ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                        : indices.totalIncidentes <= 3
+                        ? 'bg-amber-50 border-amber-200 text-amber-700'
+                        : 'bg-rose-50 border-rose-200 text-rose-700'
+                    }`}
+                  >
+                    <span className="font-mono font-bold text-sm">{indices.totalIncidentes}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-400 block uppercase font-mono font-semibold">
+                      Clasificación SST ({indices.totalIncidentes} incidentes)
+                    </span>
+                    <span
+                      className={`font-mono text-sm font-bold block ${
+                        indices.estadoSST === 'OPTIMO'
+                          ? 'text-emerald-700'
+                          : indices.estadoSST === 'MODERADO'
+                          ? 'text-amber-700'
+                          : 'text-rose-700'
+                      }`}
+                    >
+                      {indices.estadoSST}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => navigate(sessionIdAuditoria ? `/reportes?sessionId=${sessionIdAuditoria}` : '/reportes')}
+                  className="px-2.5 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[11px] font-medium text-slate-700 flex items-center gap-1 transition-colors cursor-pointer"
+                  title="Descargar reporte oficial en Excel o dictamen en PDF"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Reportes →</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Línea de Tiempo de Incidentes Correlacionados */}
+          {sessionIdAuditoria.trim() && (
+            <div className="rounded-2xl bg-white border border-slate-200/90 p-5 shadow-xs">
+              <LineaTiempoIncidentes
+                sessionId={sessionIdAuditoria.trim()}
+                onIncidenteAuditado={() => {
+                  api
+                    .get(`/supervision/indices/${sessionIdAuditoria.trim()}`)
+                    .then((res) => setIndices(res.data))
+                    .catch(() => {});
+                }}
+              />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ConsentType } from '@prisma/client';
+import { BitacoraInmutableService } from '../supervision/services/bitacora-inmutable.service';
 
 export interface FirmarConsentimientoDto {
   type?: ConsentType;
@@ -11,7 +12,10 @@ export interface FirmarConsentimientoDto {
 export class ConsentimientoService {
   private readonly logger = new Logger(ConsentimientoService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly bitacora: BitacoraInmutableService,
+  ) {}
 
   async obtenerEstado(userId: string) {
     const consentimiento = await this.prisma.legalConsent.findFirst({
@@ -52,19 +56,17 @@ export class ConsentimientoService {
       },
     });
 
-    await this.prisma.auditLog.create({
-      data: {
-        userId,
-        action: 'CONSENTIMIENTO_FIRMADO',
-        entity: 'LegalConsent',
-        entityId: nuevoConsentimiento.id,
-        categoria: 'LEGAL_COMPLIANCE',
-        ipAddress,
-        details: {
-          type,
-          version,
-          acceptedAt: nuevoConsentimiento.acceptedAt,
-        },
+    await this.bitacora.registrar({
+      userId,
+      action: 'CONSENTIMIENTO_FIRMADO',
+      entity: 'LegalConsent',
+      entityId: nuevoConsentimiento.id,
+      categoria: 'CAMBIOS_POLITICAS',
+      ipAddress,
+      details: {
+        type,
+        version,
+        acceptedAt: nuevoConsentimiento.acceptedAt,
       },
     });
 
@@ -83,17 +85,15 @@ export class ConsentimientoService {
       data: { revokedAt: new Date(), isAccepted: false },
     });
 
-    await this.prisma.auditLog.create({
-      data: {
-        userId,
-        action: 'CONSENTIMIENTO_REVOCADO',
-        entity: 'LegalConsent',
-        categoria: 'LEGAL_COMPLIANCE',
-        ipAddress,
-        details: {
-          revokedAt: new Date(),
-          motivo: 'Revocación voluntaria por el titular o prueba de QA',
-        },
+    await this.bitacora.registrar({
+      userId,
+      action: 'CONSENTIMIENTO_REVOCADO',
+      entity: 'LegalConsent',
+      categoria: 'CAMBIOS_POLITICAS',
+      ipAddress,
+      details: {
+        revokedAt: new Date(),
+        motivo: 'Revocación voluntaria por el titular o prueba de QA',
       },
     });
 

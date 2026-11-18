@@ -2,11 +2,15 @@ import { Injectable, NotFoundException, ConflictException, ForbiddenException } 
 import { PrismaService } from '../../prisma/prisma.service';
 import { InvitarUsuarioDto } from './dto/invitar-usuario.dto';
 import { Prisma, Rol } from '@prisma/client';
+import { BitacoraInmutableService } from '../supervision/services/bitacora-inmutable.service';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UsuariosService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly bitacora: BitacoraInmutableService,
+  ) {}
 
   async listarPorOrganizacion(organizationId: string) {
     const membresias = await this.prisma.usuarioOrganizacion.findMany({
@@ -44,7 +48,7 @@ export class UsuariosService {
     }));
   }
 
-  async invitarUsuario(organizationId: string, dto: InvitarUsuarioDto) {
+  async invitarUsuario(organizationId: string, dto: InvitarUsuarioDto, operadorId?: string) {
     this.validarRolAdministrable(dto.rol);
     const correoNormalizado = dto.correo.trim().toLowerCase();
 
@@ -91,7 +95,7 @@ export class UsuariosService {
         };
 
     try {
-      return await this.prisma.usuarioOrganizacion.create({
+      const membresiaCreada = await this.prisma.usuarioOrganizacion.create({
         data: {
           usuario,
           organizacion: { connect: { id: organizationId } },
@@ -105,6 +109,22 @@ export class UsuariosService {
           departamento: { select: { id: true, nombre: true } },
         },
       });
+
+      await this.bitacora.registrar({
+        userId: operadorId,
+        action: 'INVITAR_USUARIO_ORGANIZACION',
+        entity: 'Usuario',
+        entityId: membresiaCreada.usuarioId,
+        categoria: 'CAMBIOS_POLITICAS',
+        details: {
+          correo: correoNormalizado,
+          rol: dto.rol,
+          departamentoId: dto.departamentoId,
+          organizacionId: organizationId,
+        },
+      });
+
+      return membresiaCreada;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         throw new ConflictException({
@@ -116,17 +136,31 @@ export class UsuariosService {
     }
   }
 
-  async cambiarRol(organizationId: string, usuarioId: string, nuevoRol: Rol) {
+  async cambiarRol(organizationId: string, usuarioId: string, nuevoRol: Rol, operadorId?: string) {
     this.validarRolAdministrable(nuevoRol);
     const where = {
       usuarioId_organizacionId: { usuarioId, organizacionId: organizationId },
     };
 
     try {
-      return await this.prisma.usuarioOrganizacion.update({
+      const actualizado = await this.prisma.usuarioOrganizacion.update({
         where: { ...where, rol: { not: Rol.SUPER_ADMINISTRADOR } },
         data: { rol: nuevoRol },
       });
+
+      await this.bitacora.registrar({
+        userId: operadorId,
+        action: 'CAMBIO_ROL_USUARIO',
+        entity: 'UsuarioOrganizacion',
+        entityId: usuarioId,
+        categoria: 'CAMBIOS_POLITICAS',
+        details: {
+          organizacionId: organizationId,
+          nuevoRol,
+        },
+      });
+
+      return actualizado;
     } catch (error) {
       if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== 'P2025') {
         throw error;

@@ -29,7 +29,7 @@ export class UsuariosController {
   @Roles(Rol.SUPER_ADMINISTRADOR, Rol.ADMIN_ORGANIZACION)
   @UsePipes(new ValidationPipe({ whitelist: true }))
   async invitar(@CurrentUser() user: AuthenticatedUser, @Body() dto: InvitarUsuarioDto) {
-    return this.usuariosService.invitarUsuario(user.organizationId, dto);
+    return this.usuariosService.invitarUsuario(user.organizationId, dto, user.id);
   }
 
   @Patch(':id/rol')
@@ -39,6 +39,6 @@ export class UsuariosController {
     @Param('id') usuarioId: string,
     @Body() dto: CambiarRolDto,
   ) {
-    return this.usuariosService.cambiarRol(user.organizationId, usuarioId, dto.rol);
+    return this.usuariosService.cambiarRol(user.organizationId, usuarioId, dto.rol, user.id);
   }
 }

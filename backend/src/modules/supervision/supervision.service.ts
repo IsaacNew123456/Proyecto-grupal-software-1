@@ -6,11 +6,15 @@ import { EventoConductaDto } from './dto/evento-conducta.dto';
 import { DispararPreguntaDto } from './dto/disparar-pregunta.dto';
 import { RespuestaPreguntaDto } from './dto/respuesta-pregunta.dto';
 import { FinalizarSupervisionDto } from './dto/finalizar-supervision.dto';
+import { BitacoraInmutableService } from './services/bitacora-inmutable.service';
 import * as crypto from 'crypto';
 
 @Injectable()
 export class SupervisionService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly bitacora: BitacoraInmutableService,
+  ) {}
 
   async crearCuestionario(organizacionId: string, creadorId: string, dto: CrearCuestionarioDto) {
     const randomSuffix = crypto.randomBytes(3).toString('hex').toUpperCase();
@@ -18,7 +22,7 @@ export class SupervisionService {
     const vigenciaHoras = dto.vigenciaHoras || 24;
     const expiraEn = new Date(Date.now() + vigenciaHoras * 3600 * 1000);
 
-    return this.prisma.questionnaire.create({
+    const cuestionario = await this.prisma.questionnaire.create({
       data: {
         organizationId: organizacionId,
         creadorId,
@@ -32,6 +36,22 @@ export class SupervisionService {
         activo: true,
       },
     });
+
+    await this.bitacora.registrar({
+      userId: creadorId,
+      action: 'CREAR_CUESTIONARIO',
+      entity: 'Questionnaire',
+      entityId: cuestionario.id,
+      categoria: 'CAMBIOS_POLITICAS',
+      details: {
+        titulo: dto.titulo,
+        tipo: dto.tipo || 'EXAMEN',
+        duracionMinutos: dto.duracionMinutos || 60,
+        codigoAcceso,
+      },
+    });
+
+    return cuestionario;
   }
 
   async listarCuestionarios(organizacionId: string) {
@@ -91,6 +111,19 @@ export class SupervisionService {
       },
       include: {
         questionnaire: true,
+      },
+    });
+
+    await this.bitacora.registrar({
+      userId,
+      action: 'INICIAR_SESION_SUPERVISION',
+      entity: 'SupervisionSession',
+      entityId: sesion.id,
+      categoria: 'EVENTOS_TECNICOS',
+      details: {
+        tipo: sesion.tipo,
+        questionnaireId: sesion.questionnaireId,
+        duracionMinutos: sesion.questionnaire?.duracionMinutos || 60,
       },
     });
 
@@ -227,5 +260,13 @@ export class SupervisionService {
     });
     if (!sesion) throw new NotFoundException('Sesión no encontrada.');
     return sesion;
+  }
+
+  async listarSesionesTeletrabajo(userId: string, organizationId: string) {
+    return this.prisma.supervisionSession.findMany({
+      where: { userId, organizationId, tipo: 'TELETRABAJO' },
+      orderBy: { inicio: 'desc' },
+      take: 50,
+    });
   }
 }
