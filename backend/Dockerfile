@@ -36,6 +36,10 @@ RUN apk add --no-cache openssl dumb-init
 ENV NODE_ENV=production
 ENV PORT=3000
 
+# Script de entrada para sincronización automática
+COPY docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh
+
 # Usuario no root por seguridad
 USER node
 
@@ -47,5 +51,4 @@ COPY --chown=node:node --from=builder /app/prisma ./prisma
 
 EXPOSE 3000
 
-ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "dist/main.js"]
+ENTRYPOINT ["./docker-entrypoint.sh"]

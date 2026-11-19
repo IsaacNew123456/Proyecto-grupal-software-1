@@ -4,7 +4,15 @@ import * as bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Iniciando siembra de datos segura en Supabase PostgreSQL...');
+  console.log('Verificando estado de la base de datos PostgreSQL...');
+
+  const conteoUsuarios = await prisma.usuario.count().catch(() => 0);
+  if (conteoUsuarios > 0) {
+    console.log('✅ Base de datos ya cuenta con datos iniciales. Omitiendo siembra.');
+    return;
+  }
+
+  console.log('Iniciando siembra de datos iniciales en PostgreSQL...');
 
   // Limpiar datos existentes en orden de dependencia
   await prisma.auditLog.deleteMany();
