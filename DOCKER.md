@@ -79,10 +79,16 @@ Este documento detalla la infraestructura de contenedores de **ErgoCheck AI**, c
    sudo usermod -aG docker $USER
    ```
 
-3. **Clonar el proyecto y levantar:**
+3. **Clonar el proyecto, configurar `.env` y levantar:**
    ```bash
    git clone <tu-repositorio>
    cd "Proyecto Lopez"
+
+   # Configurar variables de entorno (con credenciales de Supabase)
+   cp .env.docker.example .env
+   nano .env # (Asegurar que DATABASE_URL y DIRECT_URL tengan tu clave de Supabase)
+
+   # Levantar contenedores (Frontend Nginx + Backend NestJS)
    docker compose up --build -d
    ```
 
