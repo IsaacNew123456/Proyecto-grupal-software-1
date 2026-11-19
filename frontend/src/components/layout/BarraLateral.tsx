@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/ContextoAutenticacion';
 import { LogoErgoCheck } from '../ui/LogoErgoCheck';
+import { BotonModoOscuro } from '../ui/BotonModoOscuro';
 
 interface Props {
   abiertoEnMovil?: boolean;
@@ -176,6 +177,8 @@ export const BarraLateral: React.FC<Props> = ({ abiertoEnMovil, alCerrarMovil })
             <span className="uppercase">{usuario?.rol ? usuario.rol.replace('_', ' ') : 'USUARIO'}</span>
           </div>
         </div>
+
+        <BotonModoOscuro mostrarTexto className="w-full justify-start px-3 py-2" />
 
         <button
           type="button"

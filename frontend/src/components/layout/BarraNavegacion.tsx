@@ -2,6 +2,7 @@ import React from 'react';
 import { Building2, ShieldCheck, ShieldAlert, Menu, ChevronRight } from 'lucide-react';
 import { useAuth } from '../../context/ContextoAutenticacion';
 import { Insignia } from '../ui/Insignia';
+import { BotonModoOscuro } from '../ui/BotonModoOscuro';
 
 interface Props {
   alAbrirMovil?: () => void;
@@ -42,6 +43,8 @@ export const BarraNavegacion: React.FC<Props> = ({ alAbrirMovil }) => {
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">
+        <BotonModoOscuro />
+
         <Insignia variante={tieneConsentimiento ? 'exito' : 'advertencia'}>
           {tieneConsentimiento ? (
             <ShieldCheck className="w-3.5 h-3.5" />

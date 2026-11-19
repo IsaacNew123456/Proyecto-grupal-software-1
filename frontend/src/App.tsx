@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
+import { ProveedorTema } from './context/ContextoTema';
 import { ProveedorNotificacion } from './context/ContextoNotificacion';
 import { ProveedorAutenticacion } from './context/ContextoAutenticacion';
 import { AppRoutes } from './routes/AppRoutes';
@@ -7,11 +8,13 @@ import { AppRoutes } from './routes/AppRoutes';
 export const App: React.FC = () => {
   return (
     <BrowserRouter>
-      <ProveedorNotificacion>
-        <ProveedorAutenticacion>
-          <AppRoutes />
-        </ProveedorAutenticacion>
-      </ProveedorNotificacion>
+      <ProveedorTema>
+        <ProveedorNotificacion>
+          <ProveedorAutenticacion>
+            <AppRoutes />
+          </ProveedorAutenticacion>
+        </ProveedorNotificacion>
+      </ProveedorTema>
     </BrowserRouter>
   );
 };

@@ -2,17 +2,26 @@ import React, { createContext, useContext, useState } from 'react';
 import { AlertaNotificacion, EstadoSemaforo } from '../types/alerta';
 import { HapticsService } from '../services/haptics';
 
+export interface PushRegistro {
+  empleado: string;
+  mensaje: string;
+  timestamp: string;
+}
+
 interface AlertasContextType {
   alertas: AlertaNotificacion[];
   alertaActiva: AlertaNotificacion | null;
   estadoSemaforo: EstadoSemaforo;
   minutosAusente: number;
   rulaActual: number;
+  ultimoPushEnviado: PushRegistro | null;
   descartarAlertaActiva: () => void;
   marcarLeida: (id: string) => void;
   dispararAlertaPostura: () => void;
   dispararAlertaAusencia: () => void;
   dispararAlertaSupervisor: () => void;
+  dispararAlertaSobrecargaEstatica45Min: (empleadoNombre?: string) => void;
+  enviarNotificacionPushSupervisor: (empleadoNombre: string, mensaje?: string) => void;
   justificarPausaTeletrabajo: (motivo: string, duracionMin: number) => void;
 }
 
@@ -45,6 +54,7 @@ export const AlertasProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [estadoSemaforo, setEstadoSemaforo] = useState<EstadoSemaforo>('AMARILLO');
   const [minutosAusente, setMinutosAusente] = useState<number>(0);
   const [rulaActual, setRulaActual] = useState<number>(3.5);
+  const [ultimoPushEnviado, setUltimoPushEnviado] = useState<PushRegistro | null>(null);
 
   const agregarAlerta = (nueva: AlertaNotificacion) => {
     setAlertas((prev) => [nueva, ...prev]);
@@ -98,6 +108,44 @@ export const AlertasProvider: React.FC<{ children: React.ReactNode }> = ({ child
     agregarAlerta(nueva);
   };
 
+  const dispararAlertaSobrecargaEstatica45Min = (empleadoNombre?: string) => {
+    const nueva: AlertaNotificacion = {
+      id: `alt-${Date.now()}`,
+      tipo: 'PAUSA_ACTIVA_REQUERIDA',
+      titulo: '¡Pausa sugerida! Llevas 45 min en postura de riesgo',
+      descripcion: 'Sobrecarga estática sostenida detectada. Realiza estiramientos para evitar fatiga cervical y lumbar.',
+      severidad: 'ALTA',
+      timestamp: 'Ahora mismo',
+      leida: false,
+      empleadoNombre: empleadoNombre || 'Colaborador',
+    };
+    setEstadoSemaforo('ROJO');
+    setRulaActual(5.8);
+    HapticsService.alertaPosturaCritica();
+    agregarAlerta(nueva);
+  };
+
+  const enviarNotificacionPushSupervisor = (empleadoNombre: string, mensaje?: string) => {
+    const textoMsg = mensaje || '¡Pausa sugerida! Llevas 45 min en postura de riesgo';
+    const nueva: AlertaNotificacion = {
+      id: `alt-${Date.now()}`,
+      tipo: 'PAUSA_ACTIVA_REQUERIDA',
+      titulo: textoMsg,
+      descripcion: 'Notificación push emitida por la supervisión de SST para prevención ergonómica inmediata.',
+      severidad: 'ALTA',
+      timestamp: 'Ahora mismo',
+      leida: false,
+      empleadoNombre,
+    };
+    HapticsService.exitoConfirmacion();
+    setUltimoPushEnviado({
+      empleado: empleadoNombre,
+      mensaje: textoMsg,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    });
+    agregarAlerta(nueva);
+  };
+
   const descartarAlertaActiva = () => {
     setAlertaActiva(null);
     setEstadoSemaforo('VERDE');
@@ -124,11 +172,14 @@ export const AlertasProvider: React.FC<{ children: React.ReactNode }> = ({ child
         estadoSemaforo,
         minutosAusente,
         rulaActual,
+        ultimoPushEnviado,
         descartarAlertaActiva,
         marcarLeida,
         dispararAlertaPostura,
         dispararAlertaAusencia,
         dispararAlertaSupervisor,
+        dispararAlertaSobrecargaEstatica45Min,
+        enviarNotificacionPushSupervisor,
         justificarPausaTeletrabajo,
       }}
     >

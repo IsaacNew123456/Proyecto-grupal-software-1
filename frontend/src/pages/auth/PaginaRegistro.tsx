@@ -6,6 +6,7 @@ import { useNotificacion } from '../../context/ContextoNotificacion';
 import { CampoTexto } from '../../components/ui/CampoTexto';
 import { Boton } from '../../components/ui/Boton';
 import { LogoErgoCheck } from '../../components/ui/LogoErgoCheck';
+import { BotonModoOscuro } from '../../components/ui/BotonModoOscuro';
 import { IlustracionAuth } from '../../auth/components/IlustracionAuth';
 import { obtenerRutaPorDefecto } from '../../auth/components/RutaProtegidaPorRol';
 
@@ -44,7 +45,10 @@ export const PaginaRegistro: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 bg-[#F8FAFC] bg-dot-grid bg-ambient-mesh text-slate-800">
+    <div className="relative min-h-screen w-full flex items-center justify-center p-4 sm:p-6 bg-[#F8FAFC] bg-dot-grid bg-ambient-mesh text-slate-800">
+      <div className="absolute top-4 right-4 z-20">
+        <BotonModoOscuro />
+      </div>
       <div className="w-full max-w-[880px] min-h-[520px] lg:h-[540px] bg-white rounded-3xl border border-slate-200/90 shadow-xl shadow-slate-200/50 flex flex-col lg:flex-row overflow-hidden animate-fade-up">
         {/* Panel Izquierdo: Ilustración Técnica SVG de Estación PC */}
         <IlustracionAuth />

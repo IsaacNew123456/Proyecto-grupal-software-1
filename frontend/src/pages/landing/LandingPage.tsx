@@ -20,6 +20,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { LogoErgoCheck } from '../../components/ui/LogoErgoCheck';
+import { BotonModoOscuro } from '../../components/ui/BotonModoOscuro';
 import './landing.css';
 
 /* ── Hook: Intersection Reveal para animaciones fluidas al hacer scroll ── */
@@ -278,6 +279,7 @@ export function LandingPage() {
 
           {/* Acciones principales */}
           <div className="flex items-center gap-3">
+            <BotonModoOscuro />
             <Link
               to="/login"
               className="text-xs font-semibold text-slate-300 hover:text-white px-3.5 py-2 rounded-xl hover:bg-slate-800/80 transition-all"
